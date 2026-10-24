@@ -98,8 +98,9 @@ export async function render(main) {
           const sites = siteSummary(t, 1);
           return `<li class="preview-item">
             <div class="rank" aria-label="Rank ${t.risk_rank}">${t.risk_rank}</div>
-            <div>
-              <div class="title"><a href="#/trial/${esc(t.nct_id)}">${esc(t.title)}</a></div>
+            <div class="preview-text">
+              <div class="title"><a href="#/trial/${esc(t.nct_id)}">${esc((t.conditions && t.conditions[0]) || t.title)}</a></div>
+              ${t.conditions && t.conditions[0] ? `<div class="reg-title"><a href="#/trial/${esc(t.nct_id)}" title="${esc(t.title)}">${esc(t.title)}</a></div>` : ''}
               <div class="meta">${esc(t.nct_id)} · ${esc(phaseLabel(t.phases))} · ${esc(sites.shown[0] || '')}${sites.more ? ` +${sites.more} more` : ''}</div>
             </div>
             <div class="risk">

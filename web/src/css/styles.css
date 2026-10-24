@@ -249,7 +249,11 @@ ul.checks li.no::before { background: var(--tier-high); }
 .preview-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .preview-item { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: start; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .preview-item .rank { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--muted); line-height: 1; padding-top: 2px; }
-.preview-item .title { font-weight: 600; overflow-wrap: anywhere; }
+.preview-item .preview-text { min-width: 0; }
+.preview-item .title { font-weight: 600; font-size: 1.08rem; overflow-wrap: anywhere; }
+.preview-item .reg-title { color: var(--muted); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.preview-item .reg-title a { color: inherit; text-decoration: none; }
+.preview-item .reg-title a:hover, .preview-item .reg-title a:focus-visible { text-decoration: underline; color: var(--text); }
 .preview-item .title a { color: var(--text); }
 .preview-item .meta { font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
 .preview-item .risk { text-align: right; white-space: nowrap; }
