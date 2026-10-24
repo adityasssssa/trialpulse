@@ -1,19 +1,19 @@
 // Hash router + shell behaviour (theme toggle, nav state, footer source line).
-import { loadSummary } from './data.js?v=20261024234430';
-import { esc } from './util.js?v=20261024234430';
-import { initInfo } from './info.js?v=20261024234430';
+import { loadSummary } from './data.js?v=20261024235854';
+import { esc } from './util.js?v=20261024235854';
+import { initInfo } from './info.js?v=20261024235854';
 
 const main = document.getElementById('main');
 
 const routes = [
-  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024234430'), nav: 'home' },
-  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024234430'), nav: 'trials' },
-  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024234430'), nav: 'trials' },
-  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024234430'), nav: 'about' },
-  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024234430'), nav: 'ethics' },
-  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024234430'), nav: 'map' },
-  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024234430'), nav: 'faq' },
-  { pattern: /^\/team$/, load: () => import('./pages/team.js?v=20261024234430'), nav: 'team' },
+  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024235854'), nav: 'home' },
+  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024235854'), nav: 'trials' },
+  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024235854'), nav: 'trials' },
+  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024235854'), nav: 'about' },
+  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024235854'), nav: 'ethics' },
+  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024235854'), nav: 'map' },
+  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024235854'), nav: 'faq' },
+  { pattern: /^\/team$/, load: () => import('./pages/team.js?v=20261024235854'), nav: 'team' },
 ];
 
 let renderToken = 0;
