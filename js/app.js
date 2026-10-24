@@ -1,17 +1,18 @@
 // Hash router + shell behaviour (theme toggle, nav state, footer source line).
-import { loadSummary } from './data.js?v=20261024222049';
-import { esc } from './util.js?v=20261024222049';
+import { loadSummary } from './data.js?v=20261024231307';
+import { esc } from './util.js?v=20261024231307';
+import { initInfo } from './info.js?v=20261024231307';
 
 const main = document.getElementById('main');
 
 const routes = [
-  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024222049'), nav: 'home' },
-  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024222049'), nav: 'trials' },
-  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024222049'), nav: 'trials' },
-  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024222049'), nav: 'about' },
-  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024222049'), nav: 'ethics' },
-  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024222049'), nav: 'map' },
-  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024222049'), nav: 'faq' },
+  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024231307'), nav: 'home' },
+  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024231307'), nav: 'trials' },
+  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024231307'), nav: 'trials' },
+  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024231307'), nav: 'about' },
+  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024231307'), nav: 'ethics' },
+  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024231307'), nav: 'map' },
+  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024231307'), nav: 'faq' },
 ];
 
 let renderToken = 0;
@@ -102,5 +103,6 @@ async function initFooter() {
 
 initTheme();
 initFooter();
+initInfo();
 window.addEventListener('hashchange', render);
 render();

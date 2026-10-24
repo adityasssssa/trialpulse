@@ -1,9 +1,10 @@
-import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261024222049';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024222049';
+import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261024231307';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024231307';
+import { phaseWithInfo } from '../info.js?v=20261024231307';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
-} from '../util.js?v=20261024222049';
+} from '../util.js?v=20261024231307';
 
 const extIcon = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -170,7 +171,7 @@ export async function render(main, { params }) {
           <section class="card" aria-labelledby="facts-h">
             <h2 id="facts-h">Trial facts</h2>
             <dl class="facts">
-              <dt>Phase</dt><dd>${esc(phaseLabel(t.phases))}</dd>
+              <dt>Phase</dt><dd>${phaseWithInfo(t.phases)}</dd>
               <dt>Sponsor type</dt><dd>${esc(sponsorLabel(t.sponsor_class))}</dd>
               <dt>Conditions</dt><dd>${(t.conditions || []).length ? (t.conditions || []).map((c) => `<span class="pill">${esc(c)}</span>`).join('') : '<span class="muted">Not listed</span>'}</dd>
               <dt>Condition categories</dt><dd>${(t.condition_categories || []).length ? esc(t.condition_categories.join(', ')) : '<span class="muted">No MeSH category listed</span>'}</dd>

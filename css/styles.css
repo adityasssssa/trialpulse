@@ -439,3 +439,18 @@ details.faq summary:hover { background: var(--surface-2); }
 details.faq .faq-a { padding: 0 16px 14px 48px; }
 details.faq .faq-a p { margin: 0 0 0.6em; }
 details.faq .faq-a .source { margin-top: 4px; }
+
+/* ---------- Info buttons and cards ---------- */
+.info-wrap { white-space: nowrap; }
+.info-btn { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font: 700 11px/1 var(--font-ui); font-style: italic; cursor: help; vertical-align: 1px; margin-left: 2px; padding: 0; }
+.info-btn:hover, .info-btn[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+.field .label-row { display: flex; align-items: center; gap: 6px; }
+.info-card { position: fixed; z-index: 200; background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 8px 28px rgba(0,0,0,0.22); padding: 12px 14px; font-size: 0.9rem; line-height: 1.45; }
+.info-card p { margin: 0 0 6px; }
+.info-card p:last-child { margin-bottom: 0; }
+.info-card .info-tag { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.info-card .info-title { font-weight: 700; font-size: 0.98rem; }
+.info-card .info-people, .info-card .info-count { font-weight: 600; }
+.info-card .info-note { color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 8px; }
+.info-card .info-list { margin: 0 0 6px; padding-left: 1.1em; }
+.info-card .info-list li { margin: 2px 0; }

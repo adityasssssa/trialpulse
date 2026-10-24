@@ -1,5 +1,6 @@
-import { loadSummary, loadIndex } from '../data.js?v=20261024222049';
-import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, siteSummary } from '../util.js?v=20261024222049';
+import { loadSummary, loadIndex } from '../data.js?v=20261024231307';
+import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261024231307';
+import { phaseWithInfo } from '../info.js?v=20261024231307';
 
 const arrow = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -104,7 +105,7 @@ export async function render(main) {
             <div class="preview-text">
               <div class="title"><a href="#/trial/${esc(t.nct_id)}">${esc((t.conditions && t.conditions[0]) || t.title)}</a></div>
               ${t.conditions && t.conditions[0] ? `<div class="reg-title"><a href="#/trial/${esc(t.nct_id)}" title="${esc(t.title)}">${esc(t.title)}</a></div>` : ''}
-              <div class="meta">${esc(phaseLabel(t.phases))} · ${esc(sites.shown[0] || '')}${sites.more ? ` +${sites.more} more` : ''}</div>
+              <div class="meta">${phaseWithInfo(t.phases)} · ${esc(sites.shown[0] || '')}${sites.more ? ` +${sites.more} more` : ''}</div>
             </div>
             <div class="risk">
               ${tierBadge(t.risk_tier)}
