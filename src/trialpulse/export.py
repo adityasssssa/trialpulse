@@ -198,6 +198,26 @@ def build_trials(pulls: dict) -> tuple[list, dict]:
     return records, {"n": n, "median": median, "tiers": tiers}
 
 
+def handcheck_agreement():
+    """Agreement of the keyword rule with the team's hand labels (docs/handcheck_labels.csv)."""
+    path = ROOT / "docs" / "handcheck_labels.csv"
+    if not path.exists():
+        return None
+    h = pd.read_csv(path, dtype=str, keep_default_na=False)
+    yes = h["human_label"].str.strip().str.lower().isin(["yes", "y"])
+    def share(auto: str, want_yes: bool) -> tuple[float, int, int]:
+        sel = h["auto_label"] == auto
+        hits = int((yes[sel] == want_yes).sum())
+        return round(hits / int(sel.sum()), 2), hits, int(sel.sum())
+    out, counts = {}, {}
+    for key, auto, want_yes in [("positives_precision", "accrual", True), ("other_correct", "other", False),
+                                ("unknown_correct", "unknown", False), ("mixed_actually_accrual", "mixed", True)]:
+        out[key], hits, n = share(auto, want_yes)
+        counts[key] = f"{hits}/{n}"
+    return {**out, "counts": counts, "n_checked": len(h), "reviewer": "team member",
+            "note": "rule not tuned on this sample", "labels_file": "docs/handcheck_labels.csv"}
+
+
 def build_metrics(pulls: dict) -> dict:
     m = pd.read_csv(PROCESSED / "metrics.csv")
     rows = [{k: _clean(v) for k, v in r.items()} for r in m.to_dict("records")]
@@ -218,7 +238,7 @@ def build_metrics(pulls: dict) -> dict:
             "precision_top10pct": "share of the 10% highest-risk test trials that did stop early for "
                                   "low enrollment",
         },
-        "label_handcheck_agreement": None,
+        "label_handcheck_agreement": handcheck_agreement(),
         "rows": rows,
     }
 

@@ -5,7 +5,7 @@
 - [ ] 0. Verify API from a laptop: `make check` (totalCount in tens of thousands, whyStopped populated)
 - [x] 1. Repo scaffold: requirements, Makefile, src package, Streamlit stub, spec
 - [x] 2. Pull data: `make data` (terminated+withdrawn all, completed sample, recruiting MA)
-- [ ] 3. Labels: strict + loose rule; exclude safety/funding/sponsor stops; hand-check 50, write agreement number in README
+- [x] 3. Labels: strict + loose rule; exclude safety/funding/sponsor stops; hand-check 50, write agreement number in README
 - [x] 4. Features: design-time only; null enrollment when ACTUAL; age-range width (n_countries still TODO)
 - [x] 5. Model: logreg baseline, LightGBM; time split 2008-18 / 2019-21; AUC-ROC, AUC-PR, precision@10%, Brier
 - [x] 6. Save four figures the moment they exist: ROC, PR, reliability curve, SHAP summary → `figures/`

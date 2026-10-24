@@ -40,7 +40,22 @@
     "slice": "all = full test set; us = test trials with >= 1 US site; ma = >= 1 Massachusetts site",
     "precision_top10pct": "share of the 10% highest-risk test trials that did stop early for low enrollment"
   },
-  "label_handcheck_agreement": null,
+  "label_handcheck_agreement": {
+    "positives_precision": 0.9,
+    "other_correct": 1.0,
+    "unknown_correct": 0.96,
+    "mixed_actually_accrual": 0.48,
+    "counts": {
+      "positives_precision": "45/50",
+      "other_correct": "25/25",
+      "unknown_correct": "24/25",
+      "mixed_actually_accrual": "12/25"
+    },
+    "n_checked": 125,
+    "reviewer": "team member",
+    "note": "rule not tuned on this sample",
+    "labels_file": "docs/handcheck_labels.csv"
+  },
   "rows": [
     {
       "population": "all",

@@ -101,7 +101,7 @@ Headline numbers for a homepage.
 | `split`, `population_filters` | string, string[] | How train/test were built |
 | `default_model` | object | `{population: "all", scheme: "strict", model: "lightgbm"}`: the model behind every risk score |
 | `field_notes` | object | Meanings of `population`, `scheme`, `slice`, `precision_top10pct` |
-| `label_handcheck_agreement` | number \| null | Share of hand-checked labels that agree with the keyword rule; `null` until the hand-check is done |
+| `label_handcheck_agreement` | object \| null | Hand-check of the keyword labels against 125 human labels: `positives_precision` (share of rule positives that are true enrollment failures), `other_correct`, `unknown_correct` (shares correctly *not* enrollment failures), `mixed_actually_accrual` (share of excluded mixed reasons that are enrollment failures), all numbers 0–1; `counts` (e.g. `"45/50"`), `n_checked`, `reviewer`, `note`, `labels_file`. `null` only if the labels file is missing |
 | `rows` | object[] | One per (population, scheme, slice, model). Fields: `population` (`all`\|`us`), `scheme` (`strict`\|`loose`), `slice` (`all`\|`us`\|`ma`), `model` (`logreg`\|`lightgbm`), `n_train`, `n_test` (integers), `base_rate`, `auc_roc`, `auc_pr`, `auc_pr_vs_base`, `precision_top10pct`, `precision_top10pct_vs_base`, `brier` (numbers) |
 
 The headline row is `population=all, scheme=strict, slice=all, model=lightgbm`. For Massachusetts, use `slice=ma`, but note it is small (about 1,700 test trials, under 100 positives).
@@ -149,7 +149,7 @@ To refresh only the exports from existing data: `make train report slides export
 
 Show these on an "About the model" page. They come from the [README](README.md) and the original [idea brief](docs/idea_brief.md).
 
-- **Labels come from free text.** "Why stopped" is optional and free-form. A keyword rule classifies it, so some labels are wrong. The hand-check agreement is still pending (`label_handcheck_agreement: null`). Reasons that mix low enrollment with another cause (e.g. funding) are excluded, not counted.
+- **Labels come from free text.** "Why stopped" is optional and free-form. A keyword rule classifies it, so some labels are wrong. A hand-check of 125 reasons (rule not tuned on it) found 90% of positives are true enrollment failures (45/50). "Other" was correct in 25/25 and "unknown" in 24/25. Reasons that mix low enrollment with another cause (e.g. funding) are excluded from training. About half of them (12/25) are true enrollment failures, so the model is conservative: it learns from clear-cut enrollment failures and leaves out some real ones. Details: `metrics.json` → `label_handcheck_agreement`.
 - **Retrospective registrations are excluded.** Trials first registered more than 30 days after they started are dropped from training and testing: 38% of trials. A trial registered after it has run is almost always already finished, so it leaks the outcome. Removing this leak lowered test AUC from 0.791 to 0.763.
 - **Observational studies are out of scope.** Only interventional trials are modelled and scored.
 - **The model is national and applied to Massachusetts.** It is trained on trials from all countries. On held-out trials with a Massachusetts site it does slightly worse (AUC about 0.75), and that slice is small (about 1,700 test trials, under 100 positives).

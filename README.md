@@ -29,13 +29,11 @@ Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`
 The spec lives in [`docs/spec/`](docs/spec/) (`requirements.md`, `design.md`, `tasks.md`) and is the working task list.
 
 **Evaluation:** time split, train on trials started 2008–2018, test on 2019–2021. Metrics table: `data/processed/metrics.csv`; figures in `figures/`.
-**Label hand-check agreement:** _TODO: fill in after checking 50 samples_. `make handcheck` exports random whyStopped samples (random seed `20261024`, set in `src/trialpulse/handcheck.py`) from the modelling population (interventional, start 2008–2021, not retrospectively registered) to `data/processed/`: 50 accrual positives (`handcheck_50.csv`) and 25 each of other, unknown and mixed (`handcheck_other_25.csv`, `handcheck_unknown_25.csv`, `handcheck_mixed_25.csv`). Fill in `human_label` and compare with `auto_label`.
+**Label hand-check agreement:** a team member hand-labeled 125 whyStopped reasons (the rule was not tuned on this sample). 90% of rule positives are true enrollment failures (45/50). 100% of "other" (25/25) and 96% of "unknown" (24/25) are correctly not enrollment failures. 48% of "mixed" (12/25) are enrollment failures. Labels: [`docs/handcheck_labels.csv`](docs/handcheck_labels.csv). `make handcheck` exported random whyStopped samples (random seed `20261024`, set in `src/trialpulse/handcheck.py`) from the modelling population (interventional, start 2008–2021, not retrospectively registered) to `data/processed/`: 50 accrual positives (`handcheck_50.csv`) and 25 each of other, unknown and mixed (`handcheck_other_25.csv`, `handcheck_unknown_25.csv`, `handcheck_mixed_25.csv`). Fill in `human_label` and compare with `auto_label`.
 
 **Data source:** ClinicalTrials.gov API v2.
 
 ## Results
-
-_Final pending label hand-check._
 
 Strict labels unless noted. Test set: interventional trials started 2019–2021, after excluding retrospective registrations; trained on 2008–2018. "US" and "MA" slices are test trials with at least one US / Massachusetts site. Multiples in brackets are relative to the base rate. Source: ClinicalTrials.gov API v2; full table in `data/processed/metrics.csv`.
 
@@ -53,6 +51,8 @@ Strict labels unless noted. Test set: interventional trials started 2019–2021,
 | US only | strict | full test (US) | Logistic regression | 13,517 | 7.1% | 0.711 | 0.172 (2.4×) | 0.211 (3.0×) | 0.063 |
 | US only | loose | full test (US) | LightGBM | 15,062 | 6.3% | 0.721 | 0.153 (2.4×) | 0.176 (2.8×) | 0.057 |
 | US only | loose | full test (US) | Logistic regression | 15,062 | 6.3% | 0.705 | 0.149 (2.4×) | 0.183 (2.9×) | 0.057 |
+
+**Label quality** (125 hand-checked whyStopped reasons, rule not tuned on this sample): 90% of positives are true enrollment failures (45/50); "other" 100% (25/25) and "unknown" 96% (24/25) are correctly not enrollment failures. Mixed reasons (enrollment plus another cause) are excluded from training, and about half of them (12/25) are true enrollment failures. So the positive class is conservative: it leaves out some genuine enrollment failures rather than including doubtful ones.
 
 LightGBM beat logistic regression by about 0.01 AUC on the full test set (0.763 vs 0.752), under the 0.03 bar. The default model is all countries, strict labels, LightGBM; the US-only variant is kept for the record (it scored 0.727 on its own test set, below our 0.75 bar).
 
