@@ -2,7 +2,7 @@
 
 Read `docs/spec/*.md` first; it is the spec and the task list. Keep `tasks.md` checkboxes current.
 
-Hard rules (from the idea brief; judges will catch violations):
+Hard rules (from the idea brief, `docs/idea_brief.md`; judges will catch violations):
 - Design-time features only. Never use actual enrollment counts, completion dates as outcomes, or any field known only after a trial runs. When `enrollment_type == "ACTUAL"`, the enrollment count must be nulled.
 - Time split only: train start_year 2008-2018, test 2019-2021. No random splits.
 - The model predicts enrollment-related early termination. Never describe it as predicting trial "success".

@@ -147,7 +147,7 @@ To refresh only the exports from existing data: `make train report slides export
 
 ## Known limits
 
-Show these on an "About the model" page. They come from the [README](README.md).
+Show these on an "About the model" page. They come from the [README](README.md) and the original [idea brief](docs/idea_brief.md).
 
 - **Labels come from free text.** "Why stopped" is optional and free-form. A keyword rule classifies it, so some labels are wrong. The hand-check agreement is still pending (`label_handcheck_agreement: null`). Reasons that mix low enrollment with another cause (e.g. funding) are excluded, not counted.
 - **Retrospective registrations are excluded.** Trials first registered more than 30 days after they started are dropped from training and testing: 38% of trials. A trial registered after it has run is almost always already finished, so it leaks the outcome. Removing this leak lowered test AUC from 0.791 to 0.763.
