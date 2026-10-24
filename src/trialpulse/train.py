@@ -219,6 +219,7 @@ def main():
     best = fitted[DEFAULT_POPULATION, "strict"]["lightgbm"]
     ma = make_features(pd.read_parquet(RAW / "recruiting_ma.parquet"))
     ma = ma[ma["study_type"] == "INTERVENTIONAL"]  # the model is trained on interventional trials only
+    ma = ma[ma["n_ma_sites"] >= 1]  # query.locn is a fuzzy text match; require a listed MA site
     ma["risk"] = best.predict_proba(ma[X_cols])[:, 1]
     ma = ma.sort_values("risk", ascending=False)
     ma.to_parquet(PROCESSED / "recruiting_ma_scored.parquet", index=False)
