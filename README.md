@@ -41,20 +41,20 @@ Strict labels unless noted. Test set: interventional trials started 2019–2021,
 
 | Training population | Labels | Evaluated on | Model | Test trials | Base rate | AUC-ROC | AUC-PR | Precision, top 10% | Brier |
 |---|---|---|---|---|---|---|---|---|---|
-| All countries | strict | full test | **LightGBM** | 30,087 | 5.6% | **0.762** | 0.211 (3.8×) | 0.200 (3.6×) | 0.049 |
-| All countries | strict | full test | Logistic regression | 30,087 | 5.6% | 0.752 | 0.207 (3.7×) | 0.200 (3.5×) | 0.050 |
-| All countries | strict | US slice | **LightGBM** | 13,517 | 7.1% | **0.730** | 0.172 (2.4×) | 0.211 (3.0×) | 0.062 |
-| All countries | strict | US slice | Logistic regression | 13,517 | 7.1% | 0.720 | 0.182 (2.6×) | 0.216 (3.0×) | 0.062 |
-| All countries | strict | MA slice | **LightGBM** | 1,679 | 5.1% | **0.736** | 0.150 (2.9×) | 0.191 (3.7×) | 0.046 |
-| All countries | strict | MA slice | Logistic regression | 1,679 | 5.1% | 0.717 | 0.176 (3.4×) | 0.167 (3.2×) | 0.046 |
-| All countries | loose | full test | LightGBM | 32,901 | 5.1% | 0.751 | 0.154 (3.0×) | 0.168 (3.3×) | 0.046 |
-| All countries | loose | full test | Logistic regression | 32,901 | 5.1% | 0.739 | 0.152 (3.0×) | 0.171 (3.3×) | 0.046 |
-| US only | strict | full test (US) | LightGBM | 13,517 | 7.1% | 0.727 | 0.170 (2.4×) | 0.202 (2.9×) | 0.062 |
-| US only | strict | full test (US) | Logistic regression | 13,517 | 7.1% | 0.711 | 0.168 (2.4×) | 0.206 (2.9×) | 0.063 |
-| US only | loose | full test (US) | LightGBM | 15,062 | 6.3% | 0.721 | 0.146 (2.3×) | 0.175 (2.8×) | 0.057 |
-| US only | loose | full test (US) | Logistic regression | 15,062 | 6.3% | 0.705 | 0.145 (2.3×) | 0.176 (2.8×) | 0.057 |
+| All countries | strict | full test | **LightGBM** | 30,087 | 5.6% | **0.763** | 0.211 (3.7×) | 0.197 (3.5×) | 0.049 |
+| All countries | strict | full test | Logistic regression | 30,087 | 5.6% | 0.752 | 0.209 (3.7×) | 0.202 (3.6×) | 0.050 |
+| All countries | strict | US slice | **LightGBM** | 13,517 | 7.1% | **0.731** | 0.173 (2.5×) | 0.209 (3.0×) | 0.062 |
+| All countries | strict | US slice | Logistic regression | 13,517 | 7.1% | 0.721 | 0.184 (2.6×) | 0.218 (3.1×) | 0.062 |
+| All countries | strict | MA slice | **LightGBM** | 1,679 | 5.1% | **0.746** | 0.168 (3.3×) | 0.184 (3.6×) | 0.046 |
+| All countries | strict | MA slice | Logistic regression | 1,679 | 5.1% | 0.719 | 0.182 (3.6×) | 0.179 (3.5×) | 0.046 |
+| All countries | loose | full test | LightGBM | 32,901 | 5.1% | 0.750 | 0.154 (3.0×) | 0.167 (3.2×) | 0.046 |
+| All countries | loose | full test | Logistic regression | 32,901 | 5.1% | 0.739 | 0.153 (3.0×) | 0.172 (3.3×) | 0.046 |
+| US only | strict | full test (US) | LightGBM | 13,517 | 7.1% | 0.727 | 0.173 (2.5×) | 0.200 (2.8×) | 0.062 |
+| US only | strict | full test (US) | Logistic regression | 13,517 | 7.1% | 0.711 | 0.172 (2.4×) | 0.211 (3.0×) | 0.063 |
+| US only | loose | full test (US) | LightGBM | 15,062 | 6.3% | 0.721 | 0.153 (2.4×) | 0.176 (2.8×) | 0.057 |
+| US only | loose | full test (US) | Logistic regression | 15,062 | 6.3% | 0.705 | 0.149 (2.4×) | 0.183 (2.9×) | 0.057 |
 
-LightGBM beat logistic regression by about 0.01 AUC on the full test set (0.762 vs 0.752), under the 0.03 bar. The default model is all countries, strict labels, LightGBM; the US-only variant is kept for the record (it scored 0.727 on its own test set, below our 0.75 bar).
+LightGBM beat logistic regression by about 0.01 AUC on the full test set (0.763 vs 0.752), under the 0.03 bar. The default model is all countries, strict labels, LightGBM; the US-only variant is kept for the record (it scored 0.727 on its own test set, below our 0.75 bar).
 
 Slide figures (`make slides`, `figures/slides/`): ROC and precision–recall for both models, calibration on the MA slice, top-10 SHAP drivers, and the top 20 recruiting MA trials by predicted risk.
 

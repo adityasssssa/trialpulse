@@ -52,7 +52,7 @@ PLAIN_LABELS = {
 # Yes/no categoricals: in SHAP outputs both sides of the one-hot (and UNKNOWN) merge into one feature.
 YES_NO = {"healthy_volunteers": "Healthy volunteers accepted"}
 
-RARE_WORDS = re.compile(r"\b(?:rare|orphan|syndrome)\b", re.I)
+RARE_WORDS = re.compile(r"\b(?:rare|orphan)\b", re.I)
 ONC_WORDS = re.compile(r"\b(?:cancer|carcinoma|tumou?r|lymphoma|leukemia|melanoma|sarcoma|neoplasm)\b", re.I)
 
 

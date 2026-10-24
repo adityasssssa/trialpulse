@@ -7,91 +7,91 @@
       "rank": 1,
       "feature": "Healthy volunteers accepted",
       "label": "Healthy volunteers accepted",
-      "mean_abs_shap": 0.3891
+      "mean_abs_shap": 0.3836
     },
     {
       "rank": 2,
       "feature": "Number of sites",
       "label": "Number of trial sites",
-      "mean_abs_shap": 0.2361
+      "mean_abs_shap": 0.2318
     },
     {
       "rank": 3,
       "feature": "Site country: United States",
       "label": "Main site in the US",
-      "mean_abs_shap": 0.1702
+      "mean_abs_shap": 0.1644
     },
     {
       "rank": 4,
       "feature": "Phase: PHASE1",
       "label": "Phase 1 trial",
-      "mean_abs_shap": 0.1663
+      "mean_abs_shap": 0.1627
     },
     {
       "rank": 5,
       "feature": "Age range width (years)",
       "label": "Width of eligible age range",
-      "mean_abs_shap": 0.1409
+      "mean_abs_shap": 0.1417
     },
     {
       "rank": 6,
-      "feature": "Oncology trial",
-      "label": "Cancer trial",
-      "mean_abs_shap": 0.1221
+      "feature": "Sponsor type: OTHER",
+      "label": "Academic / other sponsor",
+      "mean_abs_shap": 0.1255
     },
     {
       "rank": 7,
-      "feature": "Sponsor type: OTHER",
-      "label": "Academic / other sponsor",
-      "mean_abs_shap": 0.1151
+      "feature": "Oncology trial",
+      "label": "Cancer trial",
+      "mean_abs_shap": 0.1245
     },
     {
       "rank": 8,
       "feature": "Eligibility text length",
       "label": "Length of eligibility criteria",
-      "mean_abs_shap": 0.1094
+      "mean_abs_shap": 0.1085
     },
     {
       "rank": 9,
       "feature": "Sponsor type: INDUSTRY",
       "label": "Industry sponsor",
-      "mean_abs_shap": 0.1083
+      "mean_abs_shap": 0.1021
     },
     {
       "rank": 10,
       "feature": "Number of intervention types",
       "label": "Number of intervention types",
-      "mean_abs_shap": 0.0706
+      "mean_abs_shap": 0.0727
     },
     {
       "rank": 11,
       "feature": "Number of exclusion criteria",
       "label": "Number of exclusion criteria",
-      "mean_abs_shap": 0.067
+      "mean_abs_shap": 0.0675
     },
     {
       "rank": 12,
       "feature": "Minimum age (years)",
       "label": "Minimum eligible age",
-      "mean_abs_shap": 0.0572
+      "mean_abs_shap": 0.0595
     },
     {
       "rank": 13,
       "feature": "Phase: NA",
       "label": "No phase (e.g. device or behavioral trial)",
-      "mean_abs_shap": 0.0399
+      "mean_abs_shap": 0.0388
     },
     {
       "rank": 14,
-      "feature": "Masking: NONE",
-      "label": "Open-label (no masking)",
-      "mean_abs_shap": 0.037
+      "feature": "Phase: PHASE4",
+      "label": "Phase 4 trial",
+      "mean_abs_shap": 0.0383
     },
     {
       "rank": 15,
-      "feature": "Phase: PHASE4",
-      "label": "Phase 4 trial",
-      "mean_abs_shap": 0.0365
+      "feature": "Site country: Egypt",
+      "label": "Site country: Egypt",
+      "mean_abs_shap": 0.035
     }
   ]
 }

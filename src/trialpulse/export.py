@@ -1,6 +1,7 @@
 """Website data exports -> exports/ (committed). See HANDOFF.md for every field.
 
   ma_trials.json          one record per scored recruiting MA trial, sorted by risk
+  ma_trials_index.json    same records without eligibility_criteria (for list pages)
   metrics.json            evaluation metrics + training setup
   feature_importance.json global top-15 SHAP features
   summary.json            homepage headline numbers + plain-English description
@@ -26,6 +27,9 @@ OUT = ROOT / "exports"
 SOURCE = "ClinicalTrials.gov API v2"
 SOURCE_URL = "https://clinicaltrials.gov/data-api/api"
 TIERS = [("high", 0.10), ("elevated", 0.20)]  # top 10%, next 20%, rest "typical"
+# Kept in the model but never shown as a per-trial reason: it mostly reflects how consistently
+# US-regulated trials report a stop reason, not anything about the trial's design.
+NOT_A_REASON = {"site_country"}
 FIGURES = {"roc.png": "figures/slides/roc.png", "pr.png": "figures/slides/pr.png",
            "calibration_ma.png": "figures/slides/calibration_ma.png",
            "shap_top10.png": "figures/slides/shap_top10.png",
@@ -100,8 +104,8 @@ def reason_text(col: str, value, row: pd.Series) -> str:
     if col == "is_oncology":
         return "Cancer trial" if x else "Not a cancer trial"
     if col == "is_rare":
-        # is_rare is a keyword match (rare / orphan / syndrome), not a clinical rare-disease list
-        return ("Condition matches rare-disease keywords (rare, orphan, syndrome)" if x
+        # is_rare is a keyword match (rare / orphan), not a clinical rare-disease list
+        return ("Condition matches rare-disease keywords (rare, orphan)" if x
                 else "Condition does not match rare-disease keywords")
     return f"{FEATURE_LABELS.get(col, col)}: {x}"
 
@@ -118,8 +122,12 @@ def top_reasons(pipe, dep: pd.DataFrame, k: int = 3) -> list:
     out = []
     for i, (_, row) in enumerate(dep.iterrows()):
         reasons = []
-        for j in np.argsort(-np.abs(sv[i]))[:k]:
+        for j in np.argsort(-np.abs(sv[i])):
             col, value = source[names[j]]
+            if col in NOT_A_REASON:
+                continue
+            if len(reasons) == k:
+                break
             reasons.append({"feature_label": PLAIN_LABELS.get(names[j], names[j]),
                             "direction": "raises risk" if sv[i, j] > 0 else "lowers risk",
                             "plain_english": reason_text(col, None if col in YES_NO else value, row)})
@@ -287,7 +295,8 @@ def _no_nan(obj, path="$"):
 
 def validate():
     files = {f: json.loads((OUT / f).read_text())  # json.loads rejects nothing; _no_nan catches NaN
-             for f in ("ma_trials.json", "metrics.json", "feature_importance.json", "summary.json")}
+             for f in ("ma_trials.json", "ma_trials_index.json", "metrics.json", "feature_importance.json",
+                       "summary.json")}
     for f, obj in files.items():
         _no_nan(obj, f)
     trials = files["ma_trials.json"]
@@ -302,6 +311,11 @@ def validate():
             set(r) == {"feature_label", "direction", "plain_english"}
             and r["direction"] in ("raises risk", "lowers risk") for r in t["top_reasons"])
         assert all(isinstance(x, str) for x in t["phases"] + t["conditions"] + t["condition_categories"])
+        assert not any(r["feature_label"].startswith(("Main site", "Site country")) for r in t["top_reasons"]), \
+            f"{t['nct_id']}: site country used as a reason"
+    index = files["ma_trials_index.json"]
+    assert index == [{k: v for k, v in t.items() if k != "eligibility_criteria"} for t in trials], \
+        "index differs from ma_trials.json"
     ids = [t["nct_id"] for t in trials]
     assert len(ids) == len(set(ids)), "duplicate nct_id"
     assert [t["risk_rank"] for t in trials] == list(range(1, len(trials) + 1)), "ranks not 1..n in order"
@@ -325,6 +339,7 @@ def main():
     records, trials = build_trials(pulls)
     metrics = build_metrics(pulls)
     write("ma_trials.json", records)
+    write("ma_trials_index.json", [{k: v for k, v in r.items() if k != "eligibility_criteria"} for r in records])
     write("metrics.json", metrics)
     write("feature_importance.json", build_importance())
     write("summary.json", build_summary(trials, metrics, pulls))

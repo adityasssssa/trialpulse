@@ -1,35 +1,35 @@
 {
   "n_trials_scored": 2618,
   "n_high_risk": 262,
-  "median_risk": 0.0412,
+  "median_risk": 0.0411,
   "risk_tiers": {
     "high": {
       "ranks": [
         1,
         262
       ],
-      "min_risk": 0.1277
+      "min_risk": 0.1293
     },
     "elevated": {
       "ranks": [
         263,
         786
       ],
-      "min_risk": 0.0712
+      "min_risk": 0.072
     },
     "typical": {
       "ranks": [
         787,
         2618
       ],
-      "min_risk": 0.0018
+      "min_risk": 0.002
     }
   },
-  "auc_roc": 0.7625,
-  "auc_roc_ma": 0.7364,
+  "auc_roc": 0.7629,
+  "auc_roc_ma": 0.7461,
   "base_rate": 0.0563,
-  "top_decile_precision": 0.2004,
-  "top_decile_precision_vs_base": 3.56,
+  "top_decile_precision": 0.1974,
+  "top_decile_precision_vs_base": 3.5,
   "n_test": 30087,
   "test_years": [
     2019,
