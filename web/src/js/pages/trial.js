@@ -1,7 +1,7 @@
 import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
-  ageRange, healthyLabel, fmtDate, TIER_LABELS,
+  ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
 } from '../util.js';
 
 const LEAFLET_VERSION = '1.9.4';
@@ -34,10 +34,11 @@ function reasonsHtml(reasons) {
   if (!reasons || !reasons.length) return '<p class="muted">No reasons available.</p>';
   return `<ol class="reasons">${reasons.map((r) => {
     const raises = r.direction === 'raises risk';
-    const same = !r.plain_english || r.plain_english === r.feature_label;
+    const label = reasonLabel(r.feature_label);
+    const same = !r.plain_english || r.plain_english === r.feature_label || r.plain_english === label;
     return `<li class="reason">
       <span class="dir ${raises ? 'raises' : 'lowers'}">${raises ? '▲ raises risk' : '▼ lowers risk'}</span>
-      <span><span class="what">${esc(r.plain_english || r.feature_label)}</span>${same ? '' : `<br><span class="val">Model input: ${esc(r.feature_label)}</span>`}</span>
+      <span><span class="what">${esc(label)}</span>${same ? '' : `<br><span class="val">${esc(r.plain_english)}</span>`}</span>
     </li>`;
   }).join('')}</ol>`;
 }
@@ -88,9 +89,51 @@ async function drawMap(container, sites) {
   if (markers.length === 1) map.setView(markers[0].getLatLng(), 11);
 }
 
+// Minimal, dependency-free rendering of the registry's Markdown-style text.
+// Only structure is interpreted (bullets, paragraphs) and backslash escapes
+// such as "\<" are resolved. No wording is changed.
+function unescapeMd(s) {
+  return s.replace(/\\([\\`*_{}\[\]()#+\-.!<>|~&^])/g, "$1");
+}
+function inlineMd(s) {
+  return esc(unescapeMd(s));
+}
+function markdownToHtml(text) {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  let html = '';
+  let inList = false;
+  let para = [];
+  const flushPara = () => {
+    if (!para.length) return;
+    const joined = para.join('\n');
+    const heading = para.length === 1 && /^(inclusion|exclusion|key inclusion|key exclusion)[^\n]{0,40}:?$/i.test(joined.trim());
+    html += heading ? `<p class="elig-head">${inlineMd(joined)}</p>` : `<p>${inlineMd(joined)}</p>`;
+    para = [];
+  };
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+  for (const raw of lines) {
+    const bullet = /^(\s*)[*\-•]\s+(.*)$/.exec(raw);
+    if (bullet) {
+      flushPara();
+      if (!inList) { html += '<ul>'; inList = true; }
+      const level = Math.min(4, Math.floor(bullet[1].length / 2));
+      html += `<li style="--lvl:${level}">${inlineMd(bullet[2])}</li>`;
+    } else if (raw.trim() === '') {
+      closeList();
+      flushPara();
+    } else {
+      closeList();
+      para.push(raw);
+    }
+  }
+  closeList();
+  flushPara();
+  return html;
+}
+
 function eligibilityHtml(text) {
   if (text == null) return '<p class="muted">No eligibility criteria text is listed in the registry for this trial.</p>';
-  return `<pre id="elig-text" class="clamped">${esc(text)}</pre>
+  return `<div id="elig-text" class="elig-body clamped">${markdownToHtml(text)}</div>
     <div class="toggle"><button type="button" class="btn btn-secondary btn-small" id="elig-toggle" aria-expanded="false" aria-controls="elig-text">Show full text</button></div>`;
 }
 

@@ -114,7 +114,7 @@ export async function render(main) {
         <div class="grid-2">
           <div class="card">
             <h2 id="pred-h">What is predicted</h2>
-            <p><strong>Enrollment-related early termination only:</strong> ${esc(metrics.target)}</p>
+            <p><strong>One outcome only:</strong> a trial that is stopped (terminated or withdrawn) with a stated reason about low accrual, enrollment or recruitment. Not trial "success".</p>
             <p>Each recruiting Massachusetts trial gets an estimated probability of this outcome, a rank among the ${fmtInt(summary.n_trials_scored)} scored trials, a tier (high = top 10%, elevated = next 20%, typical = the rest) and the three design features that moved its score most.</p>
           </div>
           <div class="card">
@@ -130,10 +130,10 @@ export async function render(main) {
 
       <section class="section prose" aria-labelledby="train-h">
         <h2 id="train-h">How it was trained and tested</h2>
-        <p><strong>Data.</strong> Registered trials from the <a href="${esc(metrics.data_source_url)}" rel="noopener">ClinicalTrials.gov API v2</a>: ${fmtInt(pulls.terminated?.rows)} terminated or withdrawn trials, ${fmtInt(pulls.completed?.rows)} completed trials and ${fmtInt(pulls.recruiting_ma?.rows)} recruiting trials with a Massachusetts site, pulled on ${esc(summary.data_pulled)}. ${(metrics.population_filters || []).map((f) => esc(f.charAt(0).toUpperCase() + f.slice(1))).join('; ')}.</p>
+        <p><strong>Data.</strong> Registered trials from the <a href="${esc(metrics.data_source_url)}" rel="noopener">ClinicalTrials.gov API v2</a>: ${fmtInt(pulls.terminated?.rows)} terminated or withdrawn trials, ${fmtInt(pulls.completed?.rows)} completed trials and ${fmtInt(pulls.recruiting_ma?.rows)} recruiting trials with a Massachusetts site, pulled on ${esc(summary.data_pulled)}. Only interventional trials are included, and trials registered more than 30 days after their start date are left out because their outcome is usually already known.</p>
         <p><strong>Labels.</strong> The registry's free-text "why stopped" field. A keyword rule marks accrual, enrollment and recruitment reasons as positive; completed trials are negative ("strict" labels; "loose" labels also count trials stopped for other clear reasons as negatives). Trials with mixed reasons are left out of training.</p>
         <p><strong>Features.</strong> Design-time only: phase, sponsor type, number of sites, eligibility rules, age range and similar. Nothing known only after a trial runs is used, so the model can be applied to trials that are recruiting today.</p>
-        <p><strong>Split.</strong> ${esc(metrics.split)}: trained on trials that started ${metrics.train_years?.[0]}–${metrics.train_years?.[1]} (${fmtInt(headline[0]?.n_train)} trials) and tested on trials that started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]} (${fmtInt(headline[0]?.n_test)} trials). There is no random split, so the test mimics predicting the future.</p>
+        <p><strong>Training and testing.</strong> The trials were split by start year, never at random. The model learned from ${fmtInt(headline[0]?.n_train)} trials that started ${metrics.train_years?.[0]}–${metrics.train_years?.[1]} and was tested on ${fmtInt(headline[0]?.n_test)} trials that started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}, so the test imitates predicting the future.</p>
         <p><strong>Models.</strong> A LightGBM gradient-boosted classifier is the default and produces every score on this site. A logistic regression is kept as a baseline. Per-trial explanations use SHAP values.</p>
         ${sourceLine(summary)}
       </section>
@@ -177,7 +177,7 @@ export async function render(main) {
         <p class="prose">Global feature importance for the default model: ${esc(fi.measure)}. Higher means the feature moves scores more, in either direction.</p>
         <div class="card">
           ${importanceChart(fi)}
-          <p class="small muted" style="margin:10px 0 0">* "Main site in the US" reflects how consistently US-regulated trials report why they stopped, not trial design. It is used by the model but never shown as a per-trial reason.</p>
+          <p class="small muted" style="margin:10px 0 0">* Site-country features, such as "Main site in the US" and "Site country: Egypt", mostly reflect how consistently trials in that country report why they stopped, not trial design. The model uses them, but they are never shown as a reason on a trial page.</p>
           ${sourceLine(summary, `Model: ${esc(fi.model)}.`)}
         </div>
       </section>
