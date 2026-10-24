@@ -1,3 +1,48 @@
+# TrialPulse
+
+Predict which currently recruiting Massachusetts clinical trials will fail to enroll, map who those trials are failing to reach, and generate a plain-language trial card for outreach. Hackathon project (DS+X Healthcare / Hackachusetts H5), October 2026.
+
+## Getting started
+
+```bash
+git clone https://github.com/adityasssssa/trialpulse.git
+cd trialpulse
+make setup                 # creates .venv and installs requirements
+source .venv/bin/activate
+make check                 # step 0: confirm the ClinicalTrials.gov API works
+make data                  # pull terminated / completed / recruiting-MA trials -> data/raw/*.parquet
+make train                 # time-split model, metrics -> data/processed/metrics.csv, scored MA trials
+make app                   # Streamlit demo
+```
+
+Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`.
+
+## Project structure
+
+```
+trialpulse/
+├── app/app.py                 # Streamlit demo: ranked trials, site map, trial card
+├── scripts/check_api.py       # API sanity check from the brief
+├── src/trialpulse/
+│   ├── config.py              # paths, API fields, training window
+│   ├── fetch.py               # ClinicalTrials.gov v2 pull + flatten
+│   ├── labels.py              # whyStopped -> low-accrual label
+│   ├── features.py            # design-time features only (no leakage)
+│   └── train.py               # logreg baseline + LightGBM, metrics, scoring
+├── data/raw, data/processed   # gitignored
+├── notebooks/                 # exploration
+└── requirements.txt, Makefile, pyproject.toml
+```
+
+## Team
+
+- [@adityasssssa](https://github.com/adityasssssa)
+- [@aaRUSH1234-glitch](https://github.com/aaRUSH1234-glitch)
+
+---
+
+# Idea brief
+
 DS+X Healthcare Track: Winning Idea Brief
 Oct 24, 2026 · @vikram
 The recommendation

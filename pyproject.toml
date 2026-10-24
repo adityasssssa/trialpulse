@@ -1,0 +1,8 @@
+[project]
+name = "trialpulse"
+version = "0.1.0"
+description = "Predict which recruiting Massachusetts clinical trials will fail to enroll, and who they are failing to reach."
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]
