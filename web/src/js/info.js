@@ -67,8 +67,9 @@ function cardHtml(key) {
   }
   const info = PHASE_INFO[key];
   if (!info) return '';
+  const name = phaseLabel(key === 'UNSPECIFIED' ? [] : key.split('+'));
   return `<p class="info-tag">${esc(info.tag)}</p>
-    <p class="info-title">${esc(info.title)}</p>
+    <p class="info-title">${esc(name)}</p>
     <p>${esc(info.body)}</p>
     ${info.people ? `<p class="info-people">${esc(info.people)}</p>` : ''}
     ${info.note ? `<p class="info-note">${esc(NOTE)}</p>` : ''}`;
