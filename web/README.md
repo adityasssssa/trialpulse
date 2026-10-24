@@ -18,6 +18,7 @@ web/
 │       ├── data.js      loads exports; caches the 12 MB full file after first use
 │       ├── util.js      formatting, labels, HTML escaping
 │       ├── leaflet.js   on-demand Leaflet loader (CDN, integrity hashes)
+│       ├── info.js      plain-language phase cards behind the 'i' buttons
 │       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js, map.js, faq.js
 ├── build.sh             src + ../exports → dist/
 ├── dev.sh               local server with a data copy (no build)

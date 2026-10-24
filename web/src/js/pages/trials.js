@@ -4,6 +4,7 @@ import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, phaseKey, sponsorLabel,
   norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER,
 } from '../util.js';
+import { phaseWithInfo, infoButton } from '../info.js';
 
 const PAGE = 50;
 let prepared = null; // index rows with precomputed search text
@@ -74,15 +75,15 @@ function rowHtml(t, maxRisk) {
       <span class="pct">${fmtPct(t.risk)} estimated risk</span>
       <span class="risk-bar tier-${esc(t.risk_tier)}" aria-hidden="true"><span style="width:${width}%"></span></span>
     </td>
-    <td data-label="Phase">${esc(phaseLabel(t.phases))}</td>
+    <td data-label="Phase">${phaseWithInfo(t.phases)}</td>
     <td data-label="Sponsor">${esc(sponsorLabel(t.sponsor_class))}</td>
     <td class="sites-cell" data-label="MA sites">${sites.shown.map(esc).join('<br>')}${sites.more ? `<br><span class="muted">+${sites.more} more</span>` : ''}</td>
   </tr>`;
 }
 
-function selectHtml(id, label, items, value, labelFn = (k) => k, allLabel = 'All') {
+function selectHtml(id, label, items, value, labelFn = (k) => k, allLabel = 'All', extra = '') {
   return `<div class="field">
-    <label for="${id}">${label}</label>
+    <div class="label-row"><label for="${id}">${label}</label>${extra}</div>
     <select id="${id}" name="${id}">
       <option value="">${allLabel}</option>
       ${items.map(([k, n]) => `<option value="${esc(k)}" ${k === value ? 'selected' : ''}>${esc(labelFn(k))} (${fmtInt(n)})</option>`).join('')}
@@ -123,7 +124,7 @@ export async function render(main, { query }) {
           <div class="filters-grid" id="filters-grid">
             ${selectHtml('tier', 'Risk tier', TIER_ORDER.map((t) => [t, tierCounts.get(t) || 0]), f.tier || '', (k) => TIER_LABELS[k], 'All tiers')}
             ${selectHtml('category', 'Condition category', [...opts.cats, ['__none__', prepared.filter((r) => !(r.t.condition_categories || []).length).length]], f.category || '', (k) => (k === '__none__' ? 'No MeSH category listed' : k), 'All categories')}
-            ${selectHtml('phase', 'Phase', opts.phases, f.phase || '', (k) => phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')), 'All phases')}
+            ${selectHtml('phase', 'Phase', opts.phases, f.phase || '', (k) => phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')), 'All phases', infoButton('ALL', 'What the trial phases mean'))}
             ${selectHtml('sponsor', 'Sponsor type', opts.sponsors, f.sponsor || '', (k) => (k === 'UNSPECIFIED' ? 'Not specified' : sponsorLabel(k)), 'All sponsor types')}
             ${selectHtml('city', 'City', opts.cities, f.city || '', (k) => k, 'All cities')}
             <div class="field">

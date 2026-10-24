@@ -1,5 +1,6 @@
 import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js';
 import { loadLeaflet, addTiles } from '../leaflet.js';
+import { phaseWithInfo } from '../info.js';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
@@ -170,7 +171,7 @@ export async function render(main, { params }) {
           <section class="card" aria-labelledby="facts-h">
             <h2 id="facts-h">Trial facts</h2>
             <dl class="facts">
-              <dt>Phase</dt><dd>${esc(phaseLabel(t.phases))}</dd>
+              <dt>Phase</dt><dd>${phaseWithInfo(t.phases)}</dd>
               <dt>Sponsor type</dt><dd>${esc(sponsorLabel(t.sponsor_class))}</dd>
               <dt>Conditions</dt><dd>${(t.conditions || []).length ? (t.conditions || []).map((c) => `<span class="pill">${esc(c)}</span>`).join('') : '<span class="muted">Not listed</span>'}</dd>
               <dt>Condition categories</dt><dd>${(t.condition_categories || []).length ? esc(t.condition_categories.join(', ')) : '<span class="muted">No MeSH category listed</span>'}</dd>

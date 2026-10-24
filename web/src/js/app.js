@@ -1,6 +1,7 @@
 // Hash router + shell behaviour (theme toggle, nav state, footer source line).
 import { loadSummary } from './data.js';
 import { esc } from './util.js';
+import { initInfo } from './info.js';
 
 const main = document.getElementById('main');
 
@@ -102,5 +103,6 @@ async function initFooter() {
 
 initTheme();
 initFooter();
+initInfo();
 window.addEventListener('hashchange', render);
 render();
