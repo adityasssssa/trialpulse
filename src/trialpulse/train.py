@@ -2,10 +2,13 @@
 
 Time split: train on start_year 2008-2018, test on 2019-2021 (adjust in config/here).
 Reports AUC-ROC, AUC-PR vs base rate, precision in top decile, Brier score,
-for a logistic-regression baseline and a LightGBM model, under both label schemes,
-on the full test set and on the Massachusetts slice (>= 1 MA site) -> metrics.csv.
+for a logistic-regression baseline and a LightGBM model, under both label schemes and both
+training populations (all countries / US-only),
+on the full test set, the US slice (>= 1 US site) and the Massachusetts slice (>= 1 MA site) -> metrics.csv.
 Subgroup AUCs (is_rare, top-5 MeSH disease categories; strict scheme) -> subgroup_metrics.csv.
-Recruiting MA trials are scored with the strict LightGBM model.
+Retrospectively registered trials (first submitted > 30 days after start) are excluded.
+Recruiting interventional MA trials are scored with the strict LightGBM model of the default
+population.
 Usage: python -m trialpulse.train
 """
 import numpy as np
@@ -31,6 +34,14 @@ from .features import make_features, CATEGORICAL, NUMERIC, FEATURE_LABELS
 
 TEST_FROM_YEAR = 2019
 SCHEMES = ["strict", "loose"]
+# Trials registered this long after they started are dropped from train and test: a trial
+# registered retrospectively is usually already finished, so it can only ever be a negative.
+MAX_REGISTRATION_LAG_DAYS = 30
+# "all": every country; "us": train and test only on trials with >= 1 US site (deployment is US).
+# The default population gets the unsuffixed models/figures, SHAP, subgroups and deployment scoring;
+# the other is saved with a _pop<name> suffix.
+POPULATIONS = ["all", "us"]
+DEFAULT_POPULATION = "all"
 # Top-level MeSH disease categories (C tree + Mental Disorders), matched against condition_mesh.
 # "Pathological Conditions, Signs and Symptoms" is left out: it is a catch-all, not a disease area.
 MESH_CATEGORIES = [
@@ -136,6 +147,20 @@ def save_shap(pipe, X: pd.DataFrame, top: int = 15) -> pd.DataFrame:
     return imp.sort_values("mean_abs_shap", ascending=False).reset_index(drop=True)
 
 
+def is_retrospective(df: pd.DataFrame) -> pd.Series:
+    submit = pd.to_datetime(df["first_submit_date"], errors="coerce", format="mixed")
+    start = pd.to_datetime(df["start_date"], errors="coerce", format="mixed")
+    return (submit - start).dt.days > MAX_REGISTRATION_LAG_DAYS
+
+
+def modelling_frame(term: pd.DataFrame, comp: pd.DataFrame, scheme: str) -> pd.DataFrame:
+    """Labeled, featurized trials in the train/test window, minus retrospective registrations."""
+    df = make_features(build_labeled(term, comp, scheme=scheme))
+    df = df[df["start_year"].between(TRAIN_START_YEAR, TRAIN_END_YEAR)]
+    df = df[df["study_type"] == "INTERVENTIONAL"]  # keep the problem well-defined; revisit
+    return df[~is_retrospective(df)]
+
+
 def make_models():
     return {
         # unweighted: class_weight="balanced" inflated probabilities (Brier 0.17 vs 0.04)
@@ -152,44 +177,48 @@ def main():
     comp = pd.read_parquet(RAW / "completed.parquet")
     X_cols = NUMERIC + CATEGORICAL
     results, fitted = [], {}
-    for scheme in SCHEMES:
-        df = make_features(build_labeled(term, comp, scheme=scheme))
-        df = df[df["start_year"].between(TRAIN_START_YEAR, TRAIN_END_YEAR)]
-        df = df[df["study_type"] == "INTERVENTIONAL"]  # keep the problem well-defined; revisit
+    for population in POPULATIONS:
+        for scheme in SCHEMES:
+            df = modelling_frame(term, comp, scheme)
+            if population == "us":
+                df = df[df["n_us_sites"] >= 1]
+            train = df[df["start_year"] < TEST_FROM_YEAR]
+            test = df[df["start_year"] >= TEST_FROM_YEAR]
+            y = test["label"].to_numpy()
+            ma = (test["n_ma_sites"] >= 1).to_numpy()
+            us = (test["n_us_sites"] >= 1).to_numpy()  # deployment trials are all US
+            print(f"[{population}/{scheme}] train={len(train)} test={len(test)} test_us={us.sum()} "
+                  f"test_ma={ma.sum()} positives(train)={train.label.mean():.3f}")
 
-        train = df[df["start_year"] < TEST_FROM_YEAR]
-        test = df[df["start_year"] >= TEST_FROM_YEAR]
-        y = test["label"].to_numpy()
-        ma = (test["n_ma_sites"] >= 1).to_numpy()
-        print(f"[{scheme}] train={len(train)} test={len(test)} test_ma={ma.sum()} "
-              f"positives(train)={train.label.mean():.3f}")
-
-        suffix = "" if scheme == "strict" else f"_{scheme}"
-        models, preds = make_models(), {}
-        for name, pipe in models.items():
-            pipe.fit(train[X_cols], train["label"])
-            p = preds[name] = pipe.predict_proba(test[X_cols])[:, 1]
-            results.append({"scheme": scheme, "slice": "all", **evaluate(name, y, p)})
-            results.append({"scheme": scheme, "slice": "ma", **evaluate(name, y[ma], p[ma])})
-            save_figures(y, p, name + suffix)
-            joblib.dump(pipe, MODELS / f"{name}{suffix}.joblib")
-        fitted[scheme] = models
-        if scheme == "strict":
-            save_ma_calibration(y[ma], {n: p[ma] for n, p in preds.items()})
-            sub = subgroup_auc(test, preds)
-            sub.to_csv(PROCESSED / "subgroup_metrics.csv", index=False)
-            print(sub.to_string(index=False))
-            imp = save_shap(models["lightgbm"], test[X_cols])
-            imp.to_csv(PROCESSED / "shap_importance.csv", index=False)
-            print(imp.head(10).to_string(index=False))
+            default = population == DEFAULT_POPULATION
+            suffix = ("" if scheme == "strict" else f"_{scheme}") + ("" if default else f"_pop{population}")
+            models, preds = make_models(), {}
+            for name, pipe in models.items():
+                pipe.fit(train[X_cols], train["label"])
+                p = preds[name] = pipe.predict_proba(test[X_cols])[:, 1]
+                for sl, mask in {"all": slice(None), "us": us, "ma": ma}.items():
+                    results.append({"population": population, "scheme": scheme, "slice": sl,
+                                    **evaluate(name, y[mask], p[mask])})
+                save_figures(y, p, name + suffix)
+                joblib.dump(pipe, MODELS / f"{name}{suffix}.joblib")
+            fitted[population, scheme] = models
+            if default and scheme == "strict":
+                save_ma_calibration(y[ma], {n: p[ma] for n, p in preds.items()})
+                sub = subgroup_auc(test, preds)
+                sub.to_csv(PROCESSED / "subgroup_metrics.csv", index=False)
+                print(sub.to_string(index=False))
+                imp = save_shap(models["lightgbm"], test[X_cols])
+                imp.to_csv(PROCESSED / "shap_importance.csv", index=False)
+                print(imp.head(10).to_string(index=False))
 
     metrics = pd.DataFrame(results)
     metrics.to_csv(PROCESSED / "metrics.csv", index=False)
     print(metrics.to_string(index=False))
 
     # Score the deployment set
-    best = fitted["strict"]["lightgbm"]
+    best = fitted[DEFAULT_POPULATION, "strict"]["lightgbm"]
     ma = make_features(pd.read_parquet(RAW / "recruiting_ma.parquet"))
+    ma = ma[ma["study_type"] == "INTERVENTIONAL"]  # the model is trained on interventional trials only
     ma["risk"] = best.predict_proba(ma[X_cols])[:, 1]
     ma = ma.sort_values("risk", ascending=False)
     ma.to_parquet(PROCESSED / "recruiting_ma_scored.parquet", index=False)

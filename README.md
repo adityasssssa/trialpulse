@@ -27,6 +27,12 @@ The spec lives in [`docs/spec/`](docs/spec/) (`requirements.md`, `design.md`, `t
 
 **Data source:** ClinicalTrials.gov API v2.
 
+## Limits
+
+- **Retrospective registrations are excluded.** Trials first submitted more than 30 days after their start date are dropped from training and test (68,763 of 180,663 interventional trials started 2008–2021, 38%). A trial registered after it has already run is usually finished by then, so it can only ever appear as COMPLETED; keeping these trials teaches the model "registered late → low risk", which is outcome information, not trial design. The removed trials have a 2.9% positive rate vs 6.1% for those kept. Source: ClinicalTrials.gov API v2.
+- **The leak was real.** With the filter, strict LightGBM test AUC fell from 0.791 to 0.763 (MA slice: 0.745 to 0.736), and countries with many retrospective registrations (Turkey, Egypt) dropped out of the SHAP top 10. The test set changes too (43,603 → 30,087 trials), so the two numbers are not strictly like-for-like. Source: ClinicalTrials.gov API v2, test trials started 2019–2021.
+- **Observational studies are out of scope.** The model is trained on interventional trials only, and only recruiting interventional MA trials are scored.
+
 ## Project structure
 
 ```

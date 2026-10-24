@@ -10,7 +10,7 @@ for p in (RAW, PROCESSED, MODELS):
 API = "https://clinicaltrials.gov/api/v2/studies"
 
 FIELDS = [
-    "NCTId", "BriefTitle", "OverallStatus", "WhyStopped", "Phase", "StudyType",
+    "NCTId", "BriefTitle", "OverallStatus", "WhyStopped", "StudyFirstSubmitDate", "Phase", "StudyType",
     "EnrollmentCount", "EnrollmentType", "LeadSponsorClass", "StartDate",
     "PrimaryCompletionDate", "PrimaryCompletionDateType", "Condition", "InterventionType", "EligibilityCriteria",
     "MinimumAge", "MaximumAge", "Sex", "HealthyVolunteers", "DesignMasking",
