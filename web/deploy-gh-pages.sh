@@ -6,7 +6,7 @@ set -eu
 cd "$(dirname "$0")"
 ./build.sh
 cd ..
-TMP_INDEX="$(mktemp)"
+TMP_INDEX="$(mktemp -u)"
 export GIT_INDEX_FILE="$TMP_INDEX"
 git --work-tree=web/dist add -A
 TREE="$(git write-tree)"
