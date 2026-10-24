@@ -1,0 +1,5 @@
+# Build output: web/src plus a copy of ../exports (see build.sh)
+dist/
+# Local data copy used by `./dev.sh`
+src/data/
+.DS_Store
