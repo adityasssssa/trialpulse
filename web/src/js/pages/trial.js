@@ -1,32 +1,9 @@
 import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js';
+import { loadLeaflet, addTiles } from '../leaflet.js';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
 } from '../util.js';
-
-const LEAFLET_VERSION = '1.9.4';
-const LEAFLET_JS = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.js`;
-const LEAFLET_CSS = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.css`;
-const LEAFLET_JS_SRI = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-const LEAFLET_CSS_SRI = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-
-let leafletPromise = null;
-function loadLeaflet() {
-  if (window.L) return Promise.resolve(window.L);
-  if (!leafletPromise) {
-    leafletPromise = new Promise((resolve, reject) => {
-      const css = document.createElement('link');
-      css.rel = 'stylesheet'; css.href = LEAFLET_CSS; css.integrity = LEAFLET_CSS_SRI; css.crossOrigin = '';
-      document.head.appendChild(css);
-      const js = document.createElement('script');
-      js.src = LEAFLET_JS; js.integrity = LEAFLET_JS_SRI; js.crossOrigin = '';
-      js.onload = () => resolve(window.L);
-      js.onerror = () => { leafletPromise = null; reject(new Error('Map library could not be loaded')); };
-      document.head.appendChild(js);
-    });
-  }
-  return leafletPromise;
-}
 
 const extIcon = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -66,10 +43,7 @@ async function drawMap(container, sites) {
   }
   if (!container.isConnected) return;
   const map = L.map(container, { scrollWheelZoom: false });
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
+  addTiles(L, map);
   // Several sites can share the same (city-level) coordinates: group them into one pin.
   const groups = new Map();
   for (const s of located) {

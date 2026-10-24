@@ -17,7 +17,8 @@ web/
 │       ├── app.js       hash router, theme, footer source line
 │       ├── data.js      loads exports; caches the 12 MB full file after first use
 │       ├── util.js      formatting, labels, HTML escaping
-│       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js
+│       ├── leaflet.js   on-demand Leaflet loader (CDN, integrity hashes)
+│       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js, map.js, faq.js
 ├── build.sh             src + ../exports → dist/
 ├── dev.sh               local server with a data copy (no build)
 ├── deploy-gh-pages.sh   publish dist/ to the gh-pages branch
@@ -33,6 +34,8 @@ Pages (all under `#/` so they work on any static host without rewrite rules):
 | `#/trial/NCT…` | Risk, tier, percentile, "N× typical", the three top reasons, trial facts, Massachusetts sites with a map, verbatim eligibility criteria and the ClinicalTrials.gov link |
 | `#/about` | What is and is not predicted, training and test setup, the metrics table from `metrics.json`, the label hand-check, global feature importance, the evaluation figures and every known limit from HANDOFF.md |
 | `#/ethics` | Our promise, what is and is not predicted, data used, how we checked ourselves, a fairness table and chart computed live from `ma_trials_index.json`, expert review notes, known limits, what's next, and links |
+| `#/map` | Interactive map of Massachusetts cities: darker circles mean more high-risk trials (or a larger share, via a toggle), with hover numbers, click-through to the filtered list, and the same numbers as a table |
+| `#/faq` | Frequently asked questions, answered from `summary.json` |
 
 Data loading: `ma_trials_index.json` (4 MB) powers the list, home and search. `ma_trials.json` (12.5 MB, with eligibility text) is fetched only when a trial page opens and is then cached for the session.
 
