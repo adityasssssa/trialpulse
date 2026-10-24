@@ -1,0 +1,41 @@
+{
+  "n_trials_scored": 2618,
+  "n_high_risk": 262,
+  "median_risk": 0.0411,
+  "risk_tiers": {
+    "high": {
+      "ranks": [
+        1,
+        262
+      ],
+      "min_risk": 0.1293
+    },
+    "elevated": {
+      "ranks": [
+        263,
+        786
+      ],
+      "min_risk": 0.072
+    },
+    "typical": {
+      "ranks": [
+        787,
+        2618
+      ],
+      "min_risk": 0.002
+    }
+  },
+  "auc_roc": 0.7629,
+  "auc_roc_ma": 0.7461,
+  "base_rate": 0.0563,
+  "top_decile_precision": 0.1974,
+  "top_decile_precision_vs_base": 3.5,
+  "n_test": 30087,
+  "test_years": [
+    2019,
+    2021
+  ],
+  "data_source": "ClinicalTrials.gov API v2",
+  "data_pulled": "2026-10-24",
+  "description": "TrialPulse ranks the 2,618 currently recruiting interventional clinical trials with at least one Massachusetts site by how likely each is to stop early because it cannot enroll enough participants. The model was trained on trials that started 2008–2018 and tested on trials that started 2019–2021, using only facts known when a trial is designed (such as phase, sponsor type, number of sites and eligibility rules), never its results. Among the 10% of test trials it rated riskiest, 20% stopped early for low enrollment, versus 5.6% overall. It does not predict whether a treatment works or whether a trial will succeed, it ranks trials and never people, and it does not decide who can join a trial: the study team decides eligibility. Scores are estimates, not certainties, and this is not medical advice. Data: ClinicalTrials.gov API v2, pulled 2026-10-24."
+}

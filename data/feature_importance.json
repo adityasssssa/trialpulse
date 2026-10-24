@@ -1,0 +1,97 @@
+{
+  "model": "strict LightGBM, all countries",
+  "measure": "mean |SHAP value| on the 2019-2021 test set, in log-odds of the predicted risk",
+  "data_source": "ClinicalTrials.gov API v2",
+  "features": [
+    {
+      "rank": 1,
+      "feature": "Healthy volunteers accepted",
+      "label": "Healthy volunteers accepted",
+      "mean_abs_shap": 0.3836
+    },
+    {
+      "rank": 2,
+      "feature": "Number of sites",
+      "label": "Number of trial sites",
+      "mean_abs_shap": 0.2318
+    },
+    {
+      "rank": 3,
+      "feature": "Site country: United States",
+      "label": "Main site in the US",
+      "mean_abs_shap": 0.1644
+    },
+    {
+      "rank": 4,
+      "feature": "Phase: PHASE1",
+      "label": "Phase 1 trial",
+      "mean_abs_shap": 0.1627
+    },
+    {
+      "rank": 5,
+      "feature": "Age range width (years)",
+      "label": "Width of eligible age range",
+      "mean_abs_shap": 0.1417
+    },
+    {
+      "rank": 6,
+      "feature": "Sponsor type: OTHER",
+      "label": "Academic / other sponsor",
+      "mean_abs_shap": 0.1255
+    },
+    {
+      "rank": 7,
+      "feature": "Oncology trial",
+      "label": "Cancer trial",
+      "mean_abs_shap": 0.1245
+    },
+    {
+      "rank": 8,
+      "feature": "Eligibility text length",
+      "label": "Length of eligibility criteria",
+      "mean_abs_shap": 0.1085
+    },
+    {
+      "rank": 9,
+      "feature": "Sponsor type: INDUSTRY",
+      "label": "Industry sponsor",
+      "mean_abs_shap": 0.1021
+    },
+    {
+      "rank": 10,
+      "feature": "Number of intervention types",
+      "label": "Number of intervention types",
+      "mean_abs_shap": 0.0727
+    },
+    {
+      "rank": 11,
+      "feature": "Number of exclusion criteria",
+      "label": "Number of exclusion criteria",
+      "mean_abs_shap": 0.0675
+    },
+    {
+      "rank": 12,
+      "feature": "Minimum age (years)",
+      "label": "Minimum eligible age",
+      "mean_abs_shap": 0.0595
+    },
+    {
+      "rank": 13,
+      "feature": "Phase: NA",
+      "label": "No phase (e.g. device or behavioral trial)",
+      "mean_abs_shap": 0.0388
+    },
+    {
+      "rank": 14,
+      "feature": "Phase: PHASE4",
+      "label": "Phase 4 trial",
+      "mean_abs_shap": 0.0383
+    },
+    {
+      "rank": 15,
+      "feature": "Site country: Egypt",
+      "label": "Site country: Egypt",
+      "mean_abs_shap": 0.035
+    }
+  ]
+}
