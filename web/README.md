@@ -18,11 +18,13 @@ web/
 │       ├── data.js      loads exports; caches the 12 MB full file after first use
 │       ├── util.js      formatting, labels, HTML escaping
 │       ├── leaflet.js   on-demand Leaflet loader (CDN, integrity hashes)
+│       ├── registry.js  live status from the ClinicalTrials.gov API (daily cache)
 │       ├── info.js      plain-language phase cards behind the 'i' buttons
 │       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js, map.js, faq.js, team.js
 ├── build.sh             src + ../exports → dist/
 ├── dev.sh               local server with a data copy (no build)
 ├── deploy-gh-pages.sh   publish dist/ to the gh-pages branch
+├── ci/refresh-data.yml  draft daily refresh workflow (see below)
 └── dist/                build output (gitignored)
 ```
 
@@ -76,6 +78,23 @@ builds, commits `dist/` to the `gh-pages` branch and pushes it. One-time setup i
 **Netlify:** new site from the repo with base directory `web`, build command `./build.sh`, publish directory `web/dist`.
 
 **Vercel:** import the repo with root directory `web`, framework "Other", build command `./build.sh`, output directory `dist`.
+
+## Features
+
+- Ranked list with filters, free-text search, five sort orders, a CSV download of the current selection and a shareable link (all state lives in the URL).
+- Map limited to Massachusetts: one circle per city, shaded by high-risk count, high-risk share or all matching trials; filters for phase, condition category, sponsor and start-year range; a start-year chart; a sortable city table.
+- Trial pages show the frozen score and reasons, the Massachusetts sites on a map, the verbatim eligibility text, and a live "Registry status today" card fetched from the ClinicalTrials.gov API v2 at most once a day per trial (cached in the browser). The live check never changes a score.
+- Build-time cache busting (`?v=<build id>` on every module and stylesheet), Open Graph tags, a web manifest and `robots.txt`.
+
+## Keeping the data fresh
+
+The scores come from `../exports/`, produced by the Python pipeline in this repository (`make all`, about 7 minutes). The site is static, so a daily refresh means re-running that pipeline and redeploying:
+
+1. A ready-to-use GitHub Actions workflow is in [`ci/refresh-data.yml`](ci/refresh-data.yml). It runs the pipeline daily, commits `exports/` to `main` when they change, builds `web/` from the `website` branch and publishes `gh-pages`.
+2. GitHub only runs workflows from `.github/workflows/`, which is outside `web/`. A maintainer copies the file there on `main` to switch it on, or runs it by hand from the Actions tab (`workflow_dispatch`).
+3. Until then, refresh by hand: `make all` on `main`, then `./web/deploy-gh-pages.sh` from a clone with `web/` present.
+
+Independently of the pipeline, every trial page checks the registry live once a day for that trial's current status, so a trial that has stopped recruiting since the last pull is flagged on its page.
 
 ## Display rules the site follows
 

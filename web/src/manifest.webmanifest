@@ -1,0 +1,10 @@
+{
+  "name": "TrialPulse",
+  "short_name": "TrialPulse",
+  "description": "Ranks the clinical trials now recruiting in Massachusetts by their estimated risk of stopping early for low enrollment. For recruitment teams, not patients.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f5f1",
+  "theme_color": "#0f5f66",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

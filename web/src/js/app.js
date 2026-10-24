@@ -98,7 +98,12 @@ async function initFooter() {
   try {
     const s = await loadSummary();
     const el = document.getElementById('footer-source');
-    if (el) el.textContent = `Source: ${s.data_source || 'ClinicalTrials.gov API v2'}, data pulled ${s.data_pulled}.`;
+    const days = Math.max(0, Math.floor((Date.now() - new Date(`${s.data_pulled}T00:00:00Z`).getTime()) / 86400000));
+    const age = Number.isFinite(days) ? ` (${days === 0 ? 'today' : days === 1 ? '1 day ago' : `${days} days ago`})` : '';
+    if (el) el.textContent = `Source: ${s.data_source || 'ClinicalTrials.gov API v2'}, data pulled ${s.data_pulled}${age}. Trial pages also check the registry live once a day.`;
+    const build = document.querySelector('meta[name="build-id"]')?.content;
+    const fb = document.getElementById('footer-build');
+    if (fb && build && build !== 'dev') fb.textContent = `Site build ${build.replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3 $4:$5 UTC')}.`;
   } catch (e) { /* footer keeps its default text */ }
 }
 

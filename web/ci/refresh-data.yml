@@ -1,0 +1,74 @@
+# DRAFT: daily data refresh and site redeploy for TrialPulse.
+#
+# GitHub only runs workflows from .github/workflows/, which is outside web/
+# and therefore outside what the website branch may change. A maintainer
+# moves this file to .github/workflows/refresh-data.yml on main to enable it.
+#
+# What it does, once a day at 09:30 UTC (05:30 Boston) or on demand:
+#   1. checks out main and runs the full pipeline (`make all`, about 7 minutes:
+#      pulls ClinicalTrials.gov API v2, retrains, re-scores recruiting MA trials,
+#      writes and validates exports/);
+#   2. commits exports/ to main if anything changed;
+#   3. takes web/ from the website branch, builds it against the fresh exports
+#      and publishes dist/ to gh-pages.
+# Nothing in main's src/ or docs/ is edited. Scores change only when the
+# pipeline re-runs; the site itself is static.
+name: Refresh data and redeploy site
+
+on:
+  schedule:
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the pipeline
+        run: make setup
+
+      - name: Check the registry API is reachable
+        run: make check
+
+      - name: Pull data, train, score and export
+        run: make all
+
+      - name: Commit refreshed exports to main
+        run: |
+          git config user.name "trialpulse-bot"
+          git config user.email "trialpulse-bot@users.noreply.github.com"
+          git add exports
+          if git diff --cached --quiet; then
+            echo "exports unchanged"
+          else
+            git commit -m "data: daily refresh $(date -u +%F)"
+            git push origin main
+          fi
+
+      - name: Fetch the site from the website branch
+        run: |
+          git fetch origin website
+          git checkout origin/website -- web
+
+      - name: Build and publish the site to gh-pages
+        run: |
+          chmod +x web/build.sh web/deploy-gh-pages.sh
+          ./web/deploy-gh-pages.sh

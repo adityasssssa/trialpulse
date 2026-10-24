@@ -464,3 +464,32 @@ details.faq .faq-a .source { margin-top: 4px; }
 .team-card { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
 .team-card .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .team-card .name { font-weight: 600; font-size: 1.05rem; }
+
+/* ---------- Trials toolbar, sorting ---------- */
+.bar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bar-actions .sort-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.bar-actions select { padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); min-height: 38px; }
+table.data th .sort-link { color: inherit; text-decoration: none; }
+table.data th .sort-link:hover { text-decoration: underline; color: var(--text); }
+table.data th[aria-sort="ascending"] .sort-link, table.data th[aria-sort="descending"] .sort-link { color: var(--text); }
+
+/* ---------- Map v2 ---------- */
+.map-filters { margin-bottom: 16px; }
+.map-filters .filters-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+@media (max-width: 639px) { .map-toggle-row { margin-bottom: 10px; } }
+@media (min-width: 640px) { .map-toggle-row { display: none; } }
+.year-chart { width: 100%; height: auto; }
+.year-chart rect { fill: var(--accent); cursor: pointer; }
+.year-chart .dim rect { fill: var(--border-strong); }
+.year-chart .yc-bar:hover rect, .year-chart .yc-bar:focus rect { fill: var(--accent-strong); }
+.year-chart .yc-bar:focus { outline: none; }
+.year-chart .yc-bar:focus-visible rect { stroke: var(--focus); stroke-width: 2; }
+.year-chart text { fill: var(--text); font-size: 11px; font-family: var(--font-ui); }
+.year-chart .val { fill: var(--muted); }
+
+/* ---------- Live registry status ---------- */
+.live-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.live-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; border: 1px solid; }
+.live-badge.ok { color: var(--lowers); background: var(--lowers-bg); border-color: var(--lowers); }
+.live-badge.changed { color: var(--tier-elevated); background: var(--tier-elevated-bg); border-color: var(--tier-elevated-border); }
+dl.small-facts { font-size: 0.92rem; }

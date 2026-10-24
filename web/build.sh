@@ -44,6 +44,7 @@ with open(p, encoding="utf-8") as fh:
     s = fh.read()
 s = s.replace('href="css/styles.css"', f'href="css/styles.css?v={v}"')
 s = s.replace('src="js/app.js"', f'src="js/app.js?v={v}"')
+s = s.replace('<meta name="build-id" content="dev">', f'<meta name="build-id" content="{v}">')
 with open(p, "w", encoding="utf-8") as fh:
     fh.write(s)
 print("build id", v)

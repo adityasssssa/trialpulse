@@ -1,6 +1,7 @@
 import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js';
 import { loadLeaflet, addTiles } from '../leaflet.js';
 import { phaseWithInfo } from '../info.js';
+import { fetchLiveStatus, statusLabel } from '../registry.js';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
@@ -187,6 +188,11 @@ export async function render(main, { params }) {
             ${sourceLine(summary)}
           </section>
 
+          <section class="card live-card" aria-labelledby="live-h" style="margin-top:20px">
+            <h2 id="live-h">Registry status today</h2>
+            <div id="live-status"><p class="loading" style="padding:4px 0">Checking ClinicalTrials.gov…</p></div>
+          </section>
+
           <section class="card" aria-labelledby="sites-h" style="margin-top:20px">
             <h2 id="sites-h">Massachusetts site${(t.ma_sites || []).length === 1 ? '' : 's'}</h2>
             ${sitesHtml(t.ma_sites)}
@@ -204,6 +210,24 @@ export async function render(main, { params }) {
     </article>`;
 
   drawMap(main.querySelector('#map'), t.ma_sites || []);
+
+  // Live registry check (daily, cached). Shown beside the frozen score, never used to change it.
+  const live = main.querySelector('#live-status');
+  fetchLiveStatus(nctId).then((r) => {
+    if (!live.isConnected) return;
+    const changed = r.status && r.status !== 'RECRUITING';
+    live.innerHTML = `
+      <p class="live-line"><span class="live-badge ${changed ? 'changed' : 'ok'}">${esc(statusLabel(r.status))}</span>${changed ? ' <span class="small">Status has changed since our data pull on ' + esc(summary.data_pulled) + '.</span>' : ''}</p>
+      <dl class="facts small-facts">
+        <dt>Last registry update</dt><dd>${esc(fmtDate(r.lastUpdate))}</dd>
+        <dt>Status verified</dt><dd>${esc(fmtDate(r.verified))}</dd>
+        <dt>Primary completion</dt><dd>${esc(fmtDate(r.primaryCompletion))}</dd>
+        ${r.whyStopped ? `<dt>Why stopped</dt><dd>${esc(r.whyStopped)}</dd>` : ''}
+      </dl>
+      <p class="source">Source: ClinicalTrials.gov API v2, checked ${esc(r.checked)}. Rechecked once a day.</p>`;
+  }).catch(() => {
+    if (live.isConnected) live.innerHTML = `<p class="small muted">Live status unavailable right now. <a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">Check on ClinicalTrials.gov</a>.</p>`;
+  });
 
   // Eligibility text lives only in the full export; fetch it now and cache it.
   const wrap = main.querySelector('#elig-wrap');

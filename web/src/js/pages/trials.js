@@ -9,6 +9,43 @@ import { phaseWithInfo, infoButton } from '../info.js';
 const PAGE = 50;
 let prepared = null; // index rows with precomputed search text
 
+const SORTS = {
+  rank: { label: 'Highest risk first', fn: (a, b) => a.t.risk_rank - b.t.risk_rank },
+  start_desc: { label: 'Newest start date', fn: (a, b) => (b.t.start_date || '').localeCompare(a.t.start_date || '') || a.t.risk_rank - b.t.risk_rank },
+  start_asc: { label: 'Oldest start date', fn: (a, b) => (a.t.start_date || '').localeCompare(b.t.start_date || '') || a.t.risk_rank - b.t.risk_rank },
+  ma_sites: { label: 'Most Massachusetts sites', fn: (a, b) => b.t.n_ma_sites - a.t.n_ma_sites || a.t.risk_rank - b.t.risk_rank },
+  title: { label: 'Title A to Z', fn: (a, b) => a.t.title.localeCompare(b.t.title) },
+};
+
+function csvCell(v) {
+  const s = v == null ? '' : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+// CSV of the current selection, for use in a spreadsheet.
+function toCsv(rows) {
+  const head = ['nct_id', 'risk_rank', 'risk_tier', 'risk', 'risk_vs_typical', 'title', 'phases', 'sponsor_class', 'conditions', 'condition_categories', 'start_date', 'n_sites', 'n_ma_sites', 'ma_facilities', 'ma_cities', 'url'];
+  const lines = [head.join(',')];
+  for (const r of rows) {
+    const t = r.t;
+    lines.push([
+      t.nct_id, t.risk_rank, t.risk_tier, t.risk, t.risk_vs_typical, t.title, (t.phases || []).join('; '), t.sponsor_class,
+      (t.conditions || []).join('; '), (t.condition_categories || []).join('; '), t.start_date, t.n_sites, t.n_ma_sites,
+      (t.ma_sites || []).map((s) => s.facility || '').join('; '), [...new Set((t.ma_sites || []).map((s) => s.city || ''))].join('; '), t.url,
+    ].map(csvCell).join(','));
+  }
+  return lines.join('\n');
+}
+
+function downloadCsv(rows, summary) {
+  const blob = new Blob(['\ufeff' + toCsv(rows)], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `trialpulse-ma-trials-${summary?.data_pulled || 'export'}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 function prepare(rows) {
   return rows.map((t) => ({
     t,
@@ -102,7 +139,9 @@ export async function render(main, { query }) {
   const tierCounts = new Map();
   for (const r of prepared) tierCounts.set(r.t.risk_tier, (tierCounts.get(r.t.risk_tier) || 0) + 1);
 
-  const matches = applyFilters(prepared, f);
+  const sortKey = SORTS[f.sort] ? f.sort : 'rank';
+  const matches = applyFilters(prepared, f).sort(SORTS[sortKey].fn);
+  main._matches = matches;
   const anyFilter = ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility'].some((k) => f[k]);
 
   // Build the page skeleton once; re-render only the results on filter changes.
@@ -135,7 +174,13 @@ export async function render(main, { query }) {
           </div>
           <div class="filters-bar">
             <p class="result-count" id="result-count" aria-live="polite"></p>
-            <button type="button" class="link-btn" id="clear-filters">Clear filters</button>
+            <div class="bar-actions">
+              <label class="sort-label" for="sort">Sort</label>
+              <select id="sort" name="sort">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}" ${k === (f.sort || 'rank') ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select>
+              <button type="button" class="btn btn-secondary btn-small" id="download-csv">Download CSV</button>
+              <button type="button" class="btn btn-secondary btn-small" id="copy-link">Copy link</button>
+              <button type="button" class="link-btn" id="clear-filters">Clear filters</button>
+            </div>
           </div>
         </form>
         <div id="results"></div>
@@ -158,6 +203,7 @@ export async function render(main, { query }) {
       const data = new FormData(form);
       const next = {};
       for (const [k, v] of data.entries()) next[k] = String(v).trim();
+      if (next.sort === 'rank') delete next.sort;
       softNavigate(`#/trials${buildQuery(next) ? '?' + buildQuery(next) : ''}`);
     };
     let timer = null;
@@ -167,6 +213,12 @@ export async function render(main, { query }) {
       timer = setTimeout(update, delay);
     });
     form.addEventListener('submit', (e) => { e.preventDefault(); update(); });
+    main.querySelector('#download-csv').addEventListener('click', () => downloadCsv(main._matches || [], summary));
+    main.querySelector('#copy-link').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      try { await navigator.clipboard.writeText(location.href); btn.textContent = 'Link copied'; } catch (err) { btn.textContent = 'Copy failed'; }
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 1600);
+    });
     main.querySelector('#clear-filters').addEventListener('click', () => {
       form.reset();
       form.querySelectorAll('input').forEach((i) => { i.value = ''; });
@@ -176,9 +228,9 @@ export async function render(main, { query }) {
   } else {
     // Keep form controls in sync when navigating via browser back/forward.
     const form = main.querySelector('#filters');
-    for (const k of ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility']) {
+    for (const k of ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility', 'sort']) {
       const el = form.elements[k];
-      if (el && document.activeElement !== el) el.value = f[k] || '';
+      if (el && document.activeElement !== el) el.value = f[k] || (k === 'sort' ? 'rank' : '');
     }
   }
 
@@ -187,9 +239,9 @@ export async function render(main, { query }) {
   toggleBtn.textContent = activeFilters ? `Filters (${activeFilters})` : 'Filters';
   toggleBtn.setAttribute('aria-label', activeFilters ? `Show filters, ${activeFilters} active` : 'Show filters');
   const count = main.querySelector('#result-count');
-  count.textContent = anyFilter
+  count.textContent = (anyFilter
     ? `${fmtInt(matches.length)} of ${fmtInt(index.length)} trials match`
-    : `All ${fmtInt(index.length)} trials`;
+    : `All ${fmtInt(index.length)} trials`) + (sortKey !== 'rank' ? ` · sorted by ${SORTS[sortKey].label.toLowerCase()}` : '');
 
   const results = main.querySelector('#results');
   if (!matches.length) {
