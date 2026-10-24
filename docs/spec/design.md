@@ -14,9 +14,8 @@ ClinicalTrials.gov API v2 ──> fetch.py ──> data/raw/*.parquet
                                               │
                         recruiting_ma_scored.parquet ◄─┘
                                               │
-      MassGIS EJ 2020 + CDC PLACES (stretch) ──┤
                                               ▼
-                               app/app.py (Streamlit): ranked table · map · trial card
+                               report.py: ranked CSV · top-20 table figure (slides)
 ```
 
 ## Data

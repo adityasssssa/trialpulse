@@ -1,6 +1,6 @@
 # TrialPulse
 
-Predict which currently recruiting Massachusetts clinical trials will fail to enroll, map who those trials are failing to reach, and generate a plain-language trial card for outreach. DS+X Healthcare track hackathon project, October 2026.
+Predict which currently recruiting Massachusetts clinical trials will fail to enroll, trained on 15 years of terminated trials, so recruitment offices know where to focus outreach before a trial quietly closes. DS+X Healthcare track hackathon project, October 2026.
 
 ## Getting started
 
@@ -13,7 +13,7 @@ source .venv/bin/activate
 make check                 # step 0: confirm the ClinicalTrials.gov API works
 make data                  # pull terminated / completed / recruiting-MA trials -> data/raw/*.parquet
 make train                 # time-split model, metrics -> data/processed/metrics.csv, scored MA trials
-make app                   # Streamlit demo
+make report                # ranked MA trials CSV + top-20 table figure for slides
 ```
 
 Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`.
@@ -25,20 +25,20 @@ The spec lives in [`docs/spec/`](docs/spec/) (`requirements.md`, `design.md`, `t
 **Evaluation:** time split, train on trials started 2008–2018, test on 2019–2021. Metrics table: `data/processed/metrics.csv`; figures in `figures/`.
 **Label hand-check agreement:** _TODO: fill in after checking 50 samples_ (`python -c "from trialpulse.labels import *; ..."`).
 
-**Data sources:** ClinicalTrials.gov API v2 · MassGIS Environmental Justice 2020 block groups · CDC PLACES (MA counties).
+**Data source:** ClinicalTrials.gov API v2.
 
 ## Project structure
 
 ```
 trialpulse/
-├── app/app.py                 # Streamlit demo: ranked trials, site map, trial card
 ├── scripts/check_api.py       # API sanity check from the brief
 ├── src/trialpulse/
 │   ├── config.py              # paths, API fields, training window
 │   ├── fetch.py               # ClinicalTrials.gov v2 pull + flatten
 │   ├── labels.py              # whyStopped -> low-accrual label
 │   ├── features.py            # design-time features only (no leakage)
-│   └── train.py               # logreg baseline + LightGBM, metrics, scoring
+│   ├── train.py               # logreg baseline + LightGBM, metrics, scoring
+│   └── report.py              # ranked CSV + top-20 figure
 ├── docs/spec/                 # requirements, design, tasks
 ├── figures/                   # ROC / PR / calibration / SHAP PNGs
 ├── data/raw, data/processed   # gitignored

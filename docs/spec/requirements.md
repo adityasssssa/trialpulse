@@ -17,9 +17,9 @@ R2. Label terminated trials as enrollment failure from the `whyStopped` free tex
 R3. Design-time features only. Never use actual enrollment counts, completion status fields, or anything known only after the trial runs. Rows with `EnrollmentType = ACTUAL` have the count removed.
 R4. Time-split evaluation: train on trials started 2008–2018, test on 2019–2021. Report AUC-ROC, AUC-PR vs base rate, precision in the top 10% of predicted risk, calibration (reliability curve, Brier), SHAP top features, and a logistic-regression baseline the tree model is compared against.
 R5. Score every recruiting MA trial (≥500 minimum; all of them with the count on screen).
-R6. Dashboard: one screen with a ranked table of recruiting MA trials with risk score, filter by condition and phase, click-through trial card, map of site points. Source link under every number.
+R6. Output: ranked table of recruiting MA trials with risk score (CSV + top-N table rendered as a figure for slides), with the data source cited.
 R7. Plain-language trial card generated from structured fields only (condition, phase, age range, site, contact), FKGL readability shown (target median < grade 8), "not medical advice" line, "eligibility is decided by the study team" line, link to the NCT page. Free-text criteria shown verbatim, never paraphrased.
-R8. (Stretch) Reach-gap overlay: MassGIS EJ 2020 block groups + CDC PLACES county prevalence; gap score = prevalence-weighted population beyond 30 minutes of a site (straight-line × 1.3 if routing is not wired, and say so).
+R8. Out of scope: web dashboard, maps, EJ/PLACES overlay. Demo is slides + the ranked table + figures.
 
 ## Non-functional / ethics requirements
 

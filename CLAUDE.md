@@ -11,4 +11,4 @@ Hard rules (from the idea brief; judges will catch violations):
 - Any illustrative example must be labeled "synthetic / illustrative" on screen. Cite the dataset under every number.
 - Plain-language cards come from structured fields only; free-text eligibility is quoted verbatim, never paraphrased.
 
-Workflow: `make setup`, `make check`, `make data`, `make train`, `make app`. Data in `data/` is gitignored and regenerable.
+Workflow: `make setup`, `make check`, `make data`, `make train`, `make report`. No web app or map: out of scope. Data in `data/` is gitignored and regenerable.

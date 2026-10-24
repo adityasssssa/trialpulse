@@ -9,15 +9,13 @@
 - [x] 4. Features: design-time only; null enrollment when ACTUAL; age-range width (n_countries still TODO)
 - [ ] 5. Model: logreg baseline, LightGBM; time split 2008-18 / 2019-21; AUC-ROC, AUC-PR, precision@10%, Brier
 - [ ] 6. Save four figures the moment they exist: ROC, PR, reliability curve, SHAP summary → `figures/`
-- [ ] 7. Dashboard skeleton (parallel): ranked table, filters by condition/phase, trial card, site map
-- [ ] 8. Score recruiting MA trials; wire into dashboard; show count on screen
-- [ ] 9. Plain-language cards from structured fields; FKGL shown; "study team decides eligibility"; "not medical advice"
+- [ ] 7. SHAP summary plot + calibration on the MA slice of the test set
+- [ ] 8. Score recruiting MA trials; `make report` -> ranked CSV + top-20 table figure with count
+- [ ] 9. (Optional) plain-language card for 2-3 example trials from structured fields; FKGL shown; "study team decides eligibility"
 - [ ] 10. Slides: one model chart, limits slide, ethics slide; Devpost draft; README with architecture, metrics table and data citations
 - [ ] 11. Record 60-second backup demo video
 - [ ] 12. Rehearse twice with a timer; cut to 3:40
 
-## Sunday morning (only if everything above is stable)
+## Sunday morning
 
-- [ ] 13. Reach-gap overlay: MassGIS EJ block groups + PLACES prevalence weighting
-- [ ] 14. Calibration on the MA slice of the test set
-- [ ] 15. Submit Devpost by 10:30 AM (hard close 11:00)
+- [ ] 13. Final rehearsal; submit Devpost by 10:30 AM (hard close 11:00)

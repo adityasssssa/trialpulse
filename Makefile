@@ -1,19 +1,16 @@
-.PHONY: setup check data train app
-
-# Use the project venv if it exists, so targets work without `source .venv/bin/activate`
-PY := $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
+.PHONY: setup check data train report
 
 setup:
 	python3 -m venv .venv && . .venv/bin/activate && pip install -U pip && pip install -r requirements.txt && pip install -e .
 
 check:
-	$(PY) scripts/check_api.py
+	python scripts/check_api.py
 
 data:
-	$(PY) -m trialpulse.fetch
+	python -m trialpulse.fetch
 
 train:
-	$(PY) -m trialpulse.train
+	python -m trialpulse.train
 
-app:
-	$(PY) -m streamlit run app/app.py
+report:
+	python -m trialpulse.report
