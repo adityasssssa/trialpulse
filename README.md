@@ -23,7 +23,7 @@ Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`
 The spec lives in [`docs/spec/`](docs/spec/) (`requirements.md`, `design.md`, `tasks.md`) and is the working task list.
 
 **Evaluation:** time split, train on trials started 2008–2018, test on 2019–2021. Metrics table: `data/processed/metrics.csv`; figures in `figures/`.
-**Label hand-check agreement:** _TODO: fill in after checking 50 samples_ (`python -c "from trialpulse.labels import *; ..."`).
+**Label hand-check agreement:** _TODO: fill in after checking 50 samples_. `make handcheck` exports random whyStopped samples (random seed `20261024`, set in `src/trialpulse/handcheck.py`) from the modelling population (interventional, start 2008–2021, not retrospectively registered) to `data/processed/`: 50 accrual positives (`handcheck_50.csv`) and 25 each of other, unknown and mixed (`handcheck_other_25.csv`, `handcheck_unknown_25.csv`, `handcheck_mixed_25.csv`). Fill in `human_label` and compare with `auto_label`.
 
 **Data source:** ClinicalTrials.gov API v2.
 

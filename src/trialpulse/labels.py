@@ -7,7 +7,7 @@ Strict:  positive = TERMINATED/WITHDRAWN with an accrual-type whyStopped.
          clear reason, e.g. "slow accrual and loss of funding") are excluded too.
 Loose:   same positives; negatives also include terminated-for-other-clear-reason trials.
 
-Hand-check ~50 positives (brief: target 85-95% agreement) and refine the patterns.
+Hand-check samples: python -m trialpulse.handcheck (brief: target 85-95% agreement).
 """
 import re
 import pandas as pd
@@ -61,9 +61,3 @@ def build_labeled(terminated: pd.DataFrame, completed: pd.DataFrame, scheme: str
     df["start_year"] = pd.to_datetime(df["start_date"], errors="coerce", format="mixed").dt.year
     return df
 
-
-def sample_for_handcheck(terminated: pd.DataFrame, n: int = 50, seed: int = 0) -> pd.DataFrame:
-    """Random positives to hand-check; write the agreement % in README."""
-    t = terminated.copy()
-    t["reason_class"] = t["why_stopped"].map(classify_reason)
-    return t[t["reason_class"] == "accrual"].sample(n, random_state=seed)[["nct_id", "why_stopped"]]
