@@ -1,18 +1,18 @@
 // Hash router + shell behaviour (theme toggle, nav state, footer source line).
-import { loadSummary } from './data.js?v=20261024231516';
-import { esc } from './util.js?v=20261024231516';
-import { initInfo } from './info.js?v=20261024231516';
+import { loadSummary } from './data.js?v=20261024231912';
+import { esc } from './util.js?v=20261024231912';
+import { initInfo } from './info.js?v=20261024231912';
 
 const main = document.getElementById('main');
 
 const routes = [
-  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024231516'), nav: 'home' },
-  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024231516'), nav: 'trials' },
-  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024231516'), nav: 'trials' },
-  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024231516'), nav: 'about' },
-  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024231516'), nav: 'ethics' },
-  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024231516'), nav: 'map' },
-  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024231516'), nav: 'faq' },
+  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024231912'), nav: 'home' },
+  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024231912'), nav: 'trials' },
+  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024231912'), nav: 'trials' },
+  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024231912'), nav: 'about' },
+  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024231912'), nav: 'ethics' },
+  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024231912'), nav: 'map' },
+  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024231912'), nav: 'faq' },
 ];
 
 let renderToken = 0;
