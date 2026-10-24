@@ -69,9 +69,9 @@ function rowHtml(t, maxRisk) {
       <div class="sub">${esc(t.nct_id)}${conds ? ' · ' + esc(conds) : ''}${(t.conditions || []).length > 3 ? ', …' : ''}</div>
     </td>
     <td data-label="Tier">${tierBadge(t.risk_tier)}</td>
-    <td class="risk-cell" data-label="Estimated risk">
+    <td class="risk-cell" data-label="Risk">
       <span class="times">${fmtTimes(t.risk_vs_typical)} typical</span>
-      <span class="pct">${fmtPct(t.risk)} estimated</span>
+      <span class="pct">${fmtPct(t.risk)} estimated risk</span>
       <span class="risk-bar tier-${esc(t.risk_tier)}" aria-hidden="true"><span style="width:${width}%"></span></span>
     </td>
     <td data-label="Phase">${esc(phaseLabel(t.phases))}</td>
@@ -110,7 +110,7 @@ export async function render(main, { query }) {
       <div id="trials-page">
         <div class="page-head">
           <h1>Ranked trials</h1>
-          <p>All ${fmtInt(index.length)} interventional trials currently recruiting with at least one Massachusetts site, sorted by their estimated risk of stopping early because of low enrollment. Rank 1 is the highest estimated risk. Scores are estimates and a ranking, not certainties.</p>
+          <p>All ${fmtInt(index.length)} trials now recruiting in Massachusetts, riskiest first. Risk means the estimated chance a trial stops early because too few people join. It is an estimate, not a certainty.</p>
         </div>
         <form class="filters" id="filters" role="search" aria-label="Filter trials">
           <div class="filters-grid">
@@ -135,7 +135,7 @@ export async function render(main, { query }) {
           </div>
         </form>
         <div id="results"></div>
-        ${sourceLine(summary, 'Risk tiers: high = top 10% by estimated risk, elevated = next 20%, typical = the rest.')}
+        ${sourceLine(summary, 'High risk = top 10% of the ranking, elevated = next 20%, typical = the rest. "× typical" compares a trial with the typical (median) trial.')}
       </div>`;
 
     // Facility suggestions (distinct facility names, most common first).
@@ -192,7 +192,7 @@ export async function render(main, { query }) {
         <table class="data trials-table">
           <caption class="visually-hidden">Recruiting Massachusetts trials ranked by estimated risk of enrollment-related early termination</caption>
           <thead><tr>
-            <th scope="col">Rank</th><th scope="col">Trial</th><th scope="col">Risk tier</th><th scope="col">Estimated risk</th><th scope="col">Phase</th><th scope="col">Sponsor</th><th scope="col">Massachusetts site(s)</th>
+            <th scope="col">Rank</th><th scope="col">Trial</th><th scope="col">Risk tier</th><th scope="col">Risk</th><th scope="col">Phase</th><th scope="col">Sponsor</th><th scope="col">Massachusetts site(s)</th>
           </tr></thead>
           <tbody>${matches.slice(0, shown).map((r) => rowHtml(r.t, maxRisk)).join('')}</tbody>
         </table>

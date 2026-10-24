@@ -238,6 +238,8 @@ table.data tr.lead td { font-weight: 600; background: var(--accent-soft); }
 .section { margin: 36px 0; }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
 .section-head h2 { margin: 0; }
+.lede-small { max-width: 760px; color: var(--muted); margin-bottom: 14px; }
+dl.terms { max-width: 860px; } dl.terms dt { font-weight: 600; color: var(--text); font-size: 1rem; } dl.terms dd { margin-bottom: 6px; }
 .tier-legend { display: grid; gap: 12px; grid-template-columns: 1fr; }
 @media (min-width: 760px) { .tier-legend { grid-template-columns: repeat(3, 1fr); } }
 .tier-legend .card { padding: 16px 18px; }

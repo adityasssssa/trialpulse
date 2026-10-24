@@ -94,8 +94,21 @@ export async function render(main) {
     <div class="about">
       <div class="page-head">
         <h1>About the model</h1>
-        <p>How TrialPulse estimates risk, how well it was tested, and where it falls short. Everything on this page comes from the project's audited exports.</p>
+        <p>How TrialPulse estimates risk, how well it was tested, and where it falls short.</p>
       </div>
+
+      <section class="section" aria-labelledby="short-h">
+        <div class="card">
+          <h2 id="short-h">In short</h2>
+          <ul class="checks">
+            <li>We looked at about ${fmtInt(headline[0]?.n_train)} past trials and learned which design features went with stopping early for low enrollment.</li>
+            <li>We checked the model on ${fmtInt(headline[0]?.n_test)} later trials it had never seen. Among the 10% it rated riskiest, ${fmtPct(headline[0]?.precision_top10pct, 0)} did stop early for that reason, against ${fmtPct(headline[0]?.base_rate, 1)} of all trials.</li>
+            <li>Then we applied it to the ${fmtInt(summary.n_trials_scored)} trials recruiting in Massachusetts today, using only facts known when a trial is designed.</li>
+            <li>It is a ranking tool, not a crystal ball. Most trials in every tier are expected to finish normally.</li>
+          </ul>
+          ${sourceLine(summary)}
+        </div>
+      </section>
 
       <section class="section" aria-labelledby="pred-h">
         <div class="grid-2">
@@ -179,9 +192,23 @@ export async function render(main) {
         </div>
       </section>
 
+      <section class="section" aria-labelledby="terms-h">
+        <h2 id="terms-h">Words used on this page</h2>
+        <dl class="facts terms">
+          <dt>AUC-ROC</dt><dd>How well the model separates trials that stopped early from those that did not. 0.5 is a coin flip, 1.0 is perfect.</dd>
+          <dt>Base rate</dt><dd>The share of all test trials that stopped early for low enrollment, before any model.</dd>
+          <dt>Precision, top 10%</dt><dd>Of the trials the model rated riskiest, the share that really did stop early for low enrollment.</dd>
+          <dt>AUC-PR</dt><dd>A score that rewards finding the rare early-stopping trials without many false alarms. Compare it with the base rate.</dd>
+          <dt>Brier score</dt><dd>How far the estimated percentages are from what happened. Lower is better.</dd>
+          <dt>LightGBM</dt><dd>The type of model used: many small decision trees combined. Logistic regression is the simpler model it was compared with.</dd>
+          <dt>SHAP</dt><dd>A way to measure how much each feature pushed a score up or down.</dd>
+          <dt>Time split</dt><dd>Training on older trials and testing on newer ones, so the test imitates predicting the future.</dd>
+        </dl>
+      </section>
+
       <section class="section" aria-labelledby="limits-h">
         <h2 id="limits-h">Known limits</h2>
-        <p class="prose">Read these before acting on any score. Scores are estimates and a ranking, not certainties.</p>
+        <p class="prose">Worth knowing before acting on any score. Scores are estimates and a ranking, not certainties.</p>
         <ul class="limits">
           ${LIMITS.map(([head, body]) => `<li><strong>${esc(head)}</strong> ${esc(body)}</li>`).join('')}
         </ul>
