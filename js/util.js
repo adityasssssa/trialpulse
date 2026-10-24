@@ -67,6 +67,10 @@ export function sponsorLabel(cls) {
   return SPONSOR_LABELS[cls] || cls;
 }
 
+// Friendlier names for a few model inputs when shown as per-trial reasons.
+const REASON_LABELS = { 'Healthy volunteers accepted': 'Healthy volunteers' };
+export const reasonLabel = (label) => REASON_LABELS[label] || label;
+
 export const TIER_LABELS = { high: 'High risk', elevated: 'Elevated risk', typical: 'Typical risk' };
 export const TIER_ORDER = ['high', 'elevated', 'typical'];
 

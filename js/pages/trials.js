@@ -113,11 +113,14 @@ export async function render(main, { query }) {
           <p>All ${fmtInt(index.length)} trials now recruiting in Massachusetts, riskiest first. Risk means the estimated chance a trial stops early because too few people join. It is an estimate, not a certainty.</p>
         </div>
         <form class="filters" id="filters" role="search" aria-label="Filter trials">
-          <div class="filters-grid">
+          <div class="search-row">
             <div class="field search">
               <label for="q">Search title, condition or NCT ID</label>
               <input type="search" id="q" name="q" placeholder="e.g. lymphoma, NCT06510309, heart failure" value="${esc(f.q || '')}" autocomplete="off">
             </div>
+            <button type="button" class="btn btn-secondary filters-toggle" id="filters-toggle" aria-expanded="false" aria-controls="filters-grid">Filters</button>
+          </div>
+          <div class="filters-grid" id="filters-grid">
             ${selectHtml('tier', 'Risk tier', TIER_ORDER.map((t) => [t, tierCounts.get(t) || 0]), f.tier || '', (k) => TIER_LABELS[k], 'All tiers')}
             ${selectHtml('category', 'Condition category', [...opts.cats, ['__none__', prepared.filter((r) => !(r.t.condition_categories || []).length).length]], f.category || '', (k) => (k === '__none__' ? 'No MeSH category listed' : k), 'All categories')}
             ${selectHtml('phase', 'Phase', opts.phases, f.phase || '', (k) => phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')), 'All phases')}
@@ -145,6 +148,11 @@ export async function render(main, { query }) {
     dl.innerHTML = [...facCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map(([k]) => `<option value="${esc(k)}"></option>`).join('');
 
     const form = main.querySelector('#filters');
+    const toggle = main.querySelector('#filters-toggle');
+    toggle.addEventListener('click', () => {
+      const open = form.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
     const update = () => {
       const data = new FormData(form);
       const next = {};
@@ -173,6 +181,10 @@ export async function render(main, { query }) {
     }
   }
 
+  const activeFilters = ['tier', 'category', 'phase', 'sponsor', 'city', 'facility'].filter((k) => f[k]).length;
+  const toggleBtn = main.querySelector('#filters-toggle');
+  toggleBtn.textContent = activeFilters ? `Filters (${activeFilters})` : 'Filters';
+  toggleBtn.setAttribute('aria-label', activeFilters ? `Show filters, ${activeFilters} active` : 'Show filters');
   const count = main.querySelector('#result-count');
   count.textContent = anyFilter
     ? `${fmtInt(matches.length)} of ${fmtInt(index.length)} trials match`
