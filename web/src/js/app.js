@@ -36,7 +36,8 @@ async function render() {
   if (!route) {
     setNav('');
     document.title = 'Page not found · TrialPulse';
-    main.innerHTML = `<div class="card"><h1>Page not found</h1><p>There is nothing at <code>${esc(path)}</code>.</p><p><a href="#/trials">Go to the ranked trials</a></p></div>`;
+    main.innerHTML = `<div class="card"><h1>Page not found</h1><p>There is nothing at <code>${esc(path)}</code>.</p><p>If you followed a link on this site, your browser may have an older copy of it. <button type="button" class="btn btn-secondary btn-small" id="reload-btn">Reload the site</button></p><p><a href="#/">Go to the home page</a> · <a href="#/trials">Go to the ranked trials</a></p></div>`;
+    main.querySelector('#reload-btn').addEventListener('click', () => location.reload());
     return;
   }
   setNav(route.nav);
