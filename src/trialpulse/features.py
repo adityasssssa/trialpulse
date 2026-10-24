@@ -32,12 +32,12 @@ def make_features(df: pd.DataFrame) -> pd.DataFrame:
     f = df.copy()
     # LEAKAGE GUARD: actual enrollment is known only after the trial runs. Keep anticipated only.
     f["anticipated_enrollment"] = f["enrollment"].where(f["enrollment_type"] != "ACTUAL")
-    f["start_year"] = pd.to_datetime(f["start_date"], errors="coerce").dt.year
+    f["start_year"] = pd.to_datetime(f["start_date"], errors="coerce", format="mixed").dt.year
     # LEAKAGE GUARD: an ACTUAL primary completion date is an outcome (terminated trials end early).
     # Keep the planned duration only when the completion date is still anticipated.
     pc_type = f["primary_completion_type"] if "primary_completion_type" in f else pd.Series(None, index=f.index)
-    pcd = pd.to_datetime(f["primary_completion_date"], errors="coerce").where(pc_type == "ESTIMATED")
-    sd = pd.to_datetime(f["start_date"], errors="coerce")
+    pcd = pd.to_datetime(f["primary_completion_date"], errors="coerce", format="mixed").where(pc_type == "ESTIMATED")
+    sd = pd.to_datetime(f["start_date"], errors="coerce", format="mixed")
     f["planned_duration_months"] = (pcd - sd).dt.days / 30.4
     f["min_age_years"] = f["min_age"].map(_age_years)
     f["max_age_years"] = f["max_age"].map(_age_years)

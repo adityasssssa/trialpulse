@@ -3,7 +3,8 @@
 Strict:  positive = TERMINATED/WITHDRAWN with an accrual-type whyStopped.
          negative = COMPLETED only.
          Stops for safety/efficacy/funding/sponsor decision, and empty reasons, are EXCLUDED
-         (not dumped into negatives), per the brief.
+         (not dumped into negatives), per the brief. "Mixed" reasons (accrual AND another
+         clear reason, e.g. "slow accrual and loss of funding") are excluded too.
 Loose:   same positives; negatives also include terminated-for-other-clear-reason trials.
 
 Hand-check ~50 positives (brief: target 85-95% agreement) and refine the patterns.
@@ -12,7 +13,7 @@ import re
 import pandas as pd
 
 ACCRUAL_RE = re.compile(
-    r"\baccru|\benrol+|\brecruit|\bparticipant|\bpatients? (?:not|were not|could not)\b|"
+    r"\baccru|\benrol+|\brecruit|\bpatients? (?:not|were not|could not)\b|"
     r"\b(?:low|slow|poor|insufficient|inadequate|lack of|no|few|not enough) (?:accrual|enrol+ment|recruitment|participants|patients|subjects|eligible)\b|"
     r"\bunable to (?:recruit|enrol+|identify|find)\b|\bfailed to (?:recruit|enrol+)\b",
     re.IGNORECASE,
@@ -28,12 +29,15 @@ OTHER_RE = re.compile(
 
 
 def classify_reason(reason) -> str:
-    """'accrual' | 'other' | 'unknown'"""
+    """'accrual' | 'other' | 'mixed' | 'unknown'"""
     if not isinstance(reason, str) or not reason.strip():
         return "unknown"
-    if ACCRUAL_RE.search(reason):
+    accrual, other = bool(ACCRUAL_RE.search(reason)), bool(OTHER_RE.search(reason))
+    if accrual and other:
+        return "mixed"
+    if accrual:
         return "accrual"
-    if OTHER_RE.search(reason):
+    if other:
         return "other"
     return "unknown"
 
@@ -52,7 +56,7 @@ def build_labeled(terminated: pd.DataFrame, completed: pd.DataFrame, scheme: str
     c["reason_class"] = "completed"
     c["label"] = 0
     df = pd.concat([t, c], ignore_index=True)
-    df["start_year"] = pd.to_datetime(df["start_date"], errors="coerce").dt.year
+    df["start_year"] = pd.to_datetime(df["start_date"], errors="coerce", format="mixed").dt.year
     return df
 
 
