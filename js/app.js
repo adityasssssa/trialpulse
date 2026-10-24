@@ -1,17 +1,17 @@
 // Hash router + shell behaviour (theme toggle, nav state, footer source line).
-import { loadSummary } from './data.js';
-import { esc } from './util.js';
+import { loadSummary } from './data.js?v=20261024222049';
+import { esc } from './util.js?v=20261024222049';
 
 const main = document.getElementById('main');
 
 const routes = [
-  { pattern: /^\/?$/, load: () => import('./pages/home.js'), nav: 'home' },
-  { pattern: /^\/trials$/, load: () => import('./pages/trials.js'), nav: 'trials' },
-  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js'), nav: 'trials' },
-  { pattern: /^\/about$/, load: () => import('./pages/about.js'), nav: 'about' },
-  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js'), nav: 'ethics' },
-  { pattern: /^\/map$/, load: () => import('./pages/map.js'), nav: 'map' },
-  { pattern: /^\/faq$/, load: () => import('./pages/faq.js'), nav: 'faq' },
+  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024222049'), nav: 'home' },
+  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024222049'), nav: 'trials' },
+  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024222049'), nav: 'trials' },
+  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024222049'), nav: 'about' },
+  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024222049'), nav: 'ethics' },
+  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024222049'), nav: 'map' },
+  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024222049'), nav: 'faq' },
 ];
 
 let renderToken = 0;
@@ -36,7 +36,8 @@ async function render() {
   if (!route) {
     setNav('');
     document.title = 'Page not found · TrialPulse';
-    main.innerHTML = `<div class="card"><h1>Page not found</h1><p>There is nothing at <code>${esc(path)}</code>.</p><p><a href="#/trials">Go to the ranked trials</a></p></div>`;
+    main.innerHTML = `<div class="card"><h1>Page not found</h1><p>There is nothing at <code>${esc(path)}</code>.</p><p>If you followed a link on this site, your browser may have an older copy of it. <button type="button" class="btn btn-secondary btn-small" id="reload-btn">Reload the site</button></p><p><a href="#/">Go to the home page</a> · <a href="#/trials">Go to the ranked trials</a></p></div>`;
+    main.querySelector('#reload-btn').addEventListener('click', () => location.reload());
     return;
   }
   setNav(route.nav);

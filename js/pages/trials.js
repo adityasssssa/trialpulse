@@ -1,9 +1,9 @@
-import { loadIndex, loadSummary } from '../data.js';
-import { softNavigate } from '../app.js';
+import { loadIndex, loadSummary } from '../data.js?v=20261024222049';
+import { softNavigate } from '../app.js?v=20261024222049';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, phaseKey, sponsorLabel,
   norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER,
-} from '../util.js';
+} from '../util.js?v=20261024222049';
 
 const PAGE = 50;
 let prepared = null; // index rows with precomputed search text
