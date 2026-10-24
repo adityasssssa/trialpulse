@@ -1,4 +1,4 @@
-.PHONY: setup check data train report slides handcheck
+.PHONY: setup check data train report slides export all handcheck
 
 setup:
 	python3 -m venv .venv && . .venv/bin/activate && pip install -U pip && pip install -r requirements.txt && pip install -e .
@@ -20,3 +20,9 @@ handcheck:
 
 slides:
 	python -m trialpulse.slides
+
+export:
+	python -m trialpulse.export
+
+# full rebuild from a fresh API pull; ends with the website exports
+all: data train report slides export

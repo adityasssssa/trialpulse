@@ -30,7 +30,7 @@ from sklearn.metrics import RocCurveDisplay, PrecisionRecallDisplay
 
 from .config import RAW, PROCESSED, MODELS, TRAIN_START_YEAR, TRAIN_END_YEAR, ROOT
 from .labels import build_labeled
-from .features import make_features, CATEGORICAL, NUMERIC, FEATURE_LABELS
+from .features import make_features, CATEGORICAL, NUMERIC, FEATURE_LABELS, YES_NO
 
 TEST_FROM_YEAR = 2019
 SCHEMES = ["strict", "loose"]
@@ -122,23 +122,49 @@ def save_ma_calibration(y, preds: dict):
     plt.savefig(FIGURES / "calibration_ma.png", dpi=150, bbox_inches="tight"); plt.close()
 
 
-def readable(name: str) -> str:
-    """'num__n_sites' -> 'Number of sites'; 'cat__phases_PHASE2' -> 'Phase: PHASE2'."""
+def _source(name: str) -> tuple[str, str | None]:
+    """'num__n_sites' -> ('n_sites', None); 'cat__phases_PHASE2' -> ('phases', 'PHASE2')."""
     kind, col = name.split("__", 1)
     if kind == "num":
-        return FEATURE_LABELS.get(col, col)
+        return col, None
     base = max((c for c in CATEGORICAL if col.startswith(c + "_")), key=len)
-    value = col[len(base) + 1:].replace("infrequent_sklearn", "other (rare)")
-    return f"{FEATURE_LABELS.get(base, base)}: {value}"
+    return base, col[len(base) + 1:]
+
+
+def readable(name: str) -> str:
+    """'num__n_sites' -> 'Number of sites'; 'cat__phases_PHASE2' -> 'Phase: PHASE2';
+    any side of a yes/no one-hot -> its single YES_NO label."""
+    col, value = _source(name)
+    if value is None:
+        return FEATURE_LABELS.get(col, col)
+    if col in YES_NO:
+        return YES_NO[col]
+    return f"{FEATURE_LABELS.get(col, col)}: {value.replace('infrequent_sklearn', 'other (rare)')}"
+
+
+def merge_yes_no(sv: np.ndarray, Xt: np.ndarray, raw_names) -> tuple[np.ndarray, np.ndarray, list]:
+    """Sum SHAP columns that share a readable name (both sides of a yes/no one-hot; SHAP is
+    additive, so the sum is that feature's total effect). The merged feature's value for the
+    beeswarm colour is 1 = yes, 0 = no, NaN = not stated."""
+    names = [readable(n) for n in raw_names]
+    order = list(dict.fromkeys(names))
+    idx = {n: [i for i, m in enumerate(names) if m == n] for n in order}
+    sv_m = np.column_stack([sv[:, idx[n]].sum(axis=1) for n in order])
+    X_m = np.column_stack([Xt[:, idx[n][0]] for n in order])
+    for j, n in enumerate(order):
+        if len(idx[n]) > 1:
+            side = {_source(raw_names[i])[1]: Xt[:, i] for i in idx[n]}
+            X_m[:, j] = np.where(side.get("True", 0) == 1, 1.0, np.where(side.get("False", 0) == 1, 0.0, np.nan))
+    return sv_m, X_m, order
 
 
 def save_shap(pipe, X: pd.DataFrame, top: int = 15) -> pd.DataFrame:
     """Beeswarm of the top features on X -> figures/shap_summary.png; returns mean |SHAP| ranking."""
     Xt = pipe[:-1].transform(X)
     Xt = Xt.toarray() if hasattr(Xt, "toarray") else Xt
-    names = [readable(n) for n in pipe[:-1].get_feature_names_out()]
     sv = shap.TreeExplainer(pipe[-1]).shap_values(Xt)
     sv = sv[1] if isinstance(sv, list) else sv  # older shap returns [neg, pos]
+    sv, Xt, names = merge_yes_no(sv, Xt, pipe[:-1].get_feature_names_out())
     shap.summary_plot(sv, Xt, feature_names=names, max_display=top, show=False)
     plt.title("SHAP summary - strict LightGBM, 2019-2021 test trials\n"
               "Source: ClinicalTrials.gov API v2. Numeric values standardized.", fontsize=10, loc="left")
@@ -198,7 +224,7 @@ def main():
                 p = preds[name] = pipe.predict_proba(test[X_cols])[:, 1]
                 for sl, mask in {"all": slice(None), "us": us, "ma": ma}.items():
                     results.append({"population": population, "scheme": scheme, "slice": sl,
-                                    **evaluate(name, y[mask], p[mask])})
+                                    "n_train": len(train), **evaluate(name, y[mask], p[mask])})
                 save_figures(y, p, name + suffix)
                 joblib.dump(pipe, MODELS / f"{name}{suffix}.joblib")
             fitted[population, scheme] = models

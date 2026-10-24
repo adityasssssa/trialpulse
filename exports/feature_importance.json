@@ -1,0 +1,97 @@
+{
+  "model": "strict LightGBM, all countries",
+  "measure": "mean |SHAP value| on the 2019-2021 test set, in log-odds of the predicted risk",
+  "data_source": "ClinicalTrials.gov API v2",
+  "features": [
+    {
+      "rank": 1,
+      "feature": "Healthy volunteers accepted",
+      "label": "Healthy volunteers accepted",
+      "mean_abs_shap": 0.3891
+    },
+    {
+      "rank": 2,
+      "feature": "Number of sites",
+      "label": "Number of trial sites",
+      "mean_abs_shap": 0.2361
+    },
+    {
+      "rank": 3,
+      "feature": "Site country: United States",
+      "label": "Main site in the US",
+      "mean_abs_shap": 0.1702
+    },
+    {
+      "rank": 4,
+      "feature": "Phase: PHASE1",
+      "label": "Phase 1 trial",
+      "mean_abs_shap": 0.1663
+    },
+    {
+      "rank": 5,
+      "feature": "Age range width (years)",
+      "label": "Width of eligible age range",
+      "mean_abs_shap": 0.1409
+    },
+    {
+      "rank": 6,
+      "feature": "Oncology trial",
+      "label": "Cancer trial",
+      "mean_abs_shap": 0.1221
+    },
+    {
+      "rank": 7,
+      "feature": "Sponsor type: OTHER",
+      "label": "Academic / other sponsor",
+      "mean_abs_shap": 0.1151
+    },
+    {
+      "rank": 8,
+      "feature": "Eligibility text length",
+      "label": "Length of eligibility criteria",
+      "mean_abs_shap": 0.1094
+    },
+    {
+      "rank": 9,
+      "feature": "Sponsor type: INDUSTRY",
+      "label": "Industry sponsor",
+      "mean_abs_shap": 0.1083
+    },
+    {
+      "rank": 10,
+      "feature": "Number of intervention types",
+      "label": "Number of intervention types",
+      "mean_abs_shap": 0.0706
+    },
+    {
+      "rank": 11,
+      "feature": "Number of exclusion criteria",
+      "label": "Number of exclusion criteria",
+      "mean_abs_shap": 0.067
+    },
+    {
+      "rank": 12,
+      "feature": "Minimum age (years)",
+      "label": "Minimum eligible age",
+      "mean_abs_shap": 0.0572
+    },
+    {
+      "rank": 13,
+      "feature": "Phase: NA",
+      "label": "No phase (e.g. device or behavioral trial)",
+      "mean_abs_shap": 0.0399
+    },
+    {
+      "rank": 14,
+      "feature": "Masking: NONE",
+      "label": "Open-label (no masking)",
+      "mean_abs_shap": 0.037
+    },
+    {
+      "rank": 15,
+      "feature": "Phase: PHASE4",
+      "label": "Phase 4 trial",
+      "mean_abs_shap": 0.0365
+    }
+  ]
+}

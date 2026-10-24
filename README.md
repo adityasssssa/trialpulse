@@ -16,7 +16,11 @@ make train                 # time-split model, metrics -> data/processed/metrics
 make report                # ranked MA trials CSV
 make slides                # slide figures -> figures/slides/
 make handcheck             # whyStopped samples for the label hand-check
+make export                # website data -> exports/ (see HANDOFF.md)
+make all                   # data -> train -> report -> slides -> export
 ```
+
+**Building a website or app on this data?** Start with [`HANDOFF.md`](HANDOFF.md): every file in [`exports/`](exports/), every field, and the display rules.
 
 Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`.
 
@@ -73,7 +77,10 @@ trialpulse/
 │   ├── train.py               # logreg baseline + LightGBM, metrics, SHAP, scoring
 │   ├── report.py              # ranked CSV of recruiting MA trials
 │   ├── slides.py              # slide figures, one style
+│   ├── export.py              # website exports + validation
 │   └── handcheck.py           # label hand-check samples
+├── exports/                   # website data: JSON + key figures (committed)
+├── HANDOFF.md                 # guide to exports/ and display rules
 ├── docs/spec/                 # requirements, design, tasks
 ├── figures/                   # ROC / PR / calibration / SHAP PNGs (gitignored)
 │   └── slides/                # slide figures (committed)

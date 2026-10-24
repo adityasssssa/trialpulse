@@ -12,6 +12,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import average_precision_score, precision_recall_curve, roc_auc_score, roc_curve
 
 from .config import PROCESSED, ROOT
+from .features import PLAIN_LABELS
 
 OUT = ROOT / "figures" / "slides"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -22,22 +23,6 @@ SIZE = (12, 6.75)  # 16:9
 COLOR = {"logreg": "#2a78d6", "lightgbm": "#eb6834"}
 NAME = {"logreg": "Logistic regression", "lightgbm": "LightGBM"}
 INK, INK_2, MUTED, GRID = "#0b0b0b", "#52514e", "#8a8984", "#e4e3df"
-
-# Plain-English names for the SHAP bar chart; falls back to the training label.
-PLAIN = {
-    "Number of sites": "Number of trial sites",
-    "Healthy volunteers: True": "Accepts healthy volunteers",
-    "Healthy volunteers: False": "Patients only (no healthy volunteers)",
-    "Site country: United States": "Main site in the US",
-    "Phase: PHASE1": "Phase 1 trial",
-    "Age range width (years)": "Width of eligible age range",
-    "Oncology trial": "Cancer trial",
-    "Sponsor type: OTHER": "Academic / other sponsor",
-    "Sponsor type: INDUSTRY": "Industry sponsor",
-    "Eligibility text length": "Length of eligibility criteria",
-    "Number of exclusion criteria": "Number of exclusion criteria",
-    "Number of intervention types": "Number of intervention types",
-}
 
 plt.rcParams.update({
     "font.family": ["Arial", "DejaVu Sans"],
@@ -109,7 +94,7 @@ def calibration_ma(pred: pd.DataFrame):
 
 def shap_top10():
     imp = pd.read_csv(PROCESSED / "shap_importance.csv").head(10)
-    imp["plain"] = imp.feature.map(lambda f: PLAIN.get(f, f))
+    imp["plain"] = imp.feature.map(lambda f: PLAIN_LABELS.get(f, f))
     imp = imp.iloc[::-1]
     fig, ax = plt.subplots(figsize=SIZE)
     ax.barh(imp.plain, imp.mean_abs_shap, color=COLOR["lightgbm"], height=0.7)

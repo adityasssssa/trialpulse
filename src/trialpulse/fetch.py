@@ -5,10 +5,13 @@ Three pulls, as in the brief:
   completed.parquet   - COMPLETED (resolved negatives)
   recruiting_ma.parquet - RECRUITING trials with a Massachusetts site (deployment set)
 
+Each pull's UTC timestamp and row count go to data/raw/pull_log.json.
 Usage: python -m trialpulse.fetch [--limit N]
 """
 import argparse
+import json
 import time
+from datetime import datetime, timezone
 import requests
 import pandas as pd
 from .config import API, FIELDS, RAW
@@ -62,6 +65,9 @@ def flatten(study: dict) -> dict:
         "n_sites": len(locs),
         "n_ma_sites": len(ma),
         "n_us_sites": sum(l.get("country") == "United States" for l in locs),
+        "ma_sites": json.dumps([{"facility": l.get("facility"), "city": l.get("city"),
+                                 "lat": _get(l, "geoPoint", "lat"), "lon": _get(l, "geoPoint", "lon")}
+                                for l in ma]),
         "site_facility": first.get("facility"),
         "site_city": first.get("city"),
         "site_state": first.get("state"),
@@ -106,6 +112,10 @@ def main():
         out = RAW / f"{name}.parquet"
         df.to_parquet(out, index=False)
         print(f"  saved {len(df)} rows -> {out}")
+        log_path = RAW / "pull_log.json"
+        log = json.loads(log_path.read_text()) if log_path.exists() else {}
+        log[name] = {"pulled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "rows": len(df)}
+        log_path.write_text(json.dumps(log, indent=2))
 
 
 if __name__ == "__main__":

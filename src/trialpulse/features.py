@@ -27,6 +27,30 @@ FEATURE_LABELS = {
     "sponsor_class": "Sponsor type", "sex": "Sex eligible", "healthy_volunteers": "Healthy volunteers",
     "site_country": "Site country",
 }
+# Plain-English names for slides and exports, keyed by the readable name above (or a
+# "Label: VALUE" one-hot name); anything missing falls back to the readable name.
+PLAIN_LABELS = {
+    "Number of sites": "Number of trial sites",
+    "Site country: United States": "Main site in the US",
+    "Phase: PHASE1": "Phase 1 trial",
+    "Phase: PHASE4": "Phase 4 trial",
+    "Phase: NA": "No phase (e.g. device or behavioral trial)",
+    "Age range width (years)": "Width of eligible age range",
+    "Minimum age (years)": "Minimum eligible age",
+    "Maximum age (years)": "Maximum eligible age",
+    "Oncology trial": "Cancer trial",
+    "Rare-disease trial": "Rare-disease keywords in condition",
+    "Sponsor type: OTHER": "Academic / other sponsor",
+    "Sponsor type: INDUSTRY": "Industry sponsor",
+    "Masking: NONE": "Open-label (no masking)",
+    "Eligibility text length": "Length of eligibility criteria",
+    "Number of exclusion criteria": "Number of exclusion criteria",
+    "Number of intervention types": "Number of intervention types",
+    "Number of conditions": "Number of conditions studied",
+}
+
+# Yes/no categoricals: in SHAP outputs both sides of the one-hot (and UNKNOWN) merge into one feature.
+YES_NO = {"healthy_volunteers": "Healthy volunteers accepted"}
 
 RARE_WORDS = re.compile(r"\b(?:rare|orphan|syndrome)\b", re.I)
 ONC_WORDS = re.compile(r"\b(?:cancer|carcinoma|tumou?r|lymphoma|leukemia|melanoma|sarcoma|neoplasm)\b", re.I)
