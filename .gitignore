@@ -226,3 +226,6 @@ data/processed/*
 !data/processed/.gitkeep
 models/
 figures/*.png
+
+# macOS
+.DS_Store
