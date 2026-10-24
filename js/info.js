@@ -1,6 +1,6 @@
 // Small "i" buttons that show a plain-language card on hover, focus or tap.
 // One floating card is shared by every button; content comes from PHASE_INFO.
-import { esc, phaseLabel, phaseKey } from './util.js?v=20261024231912';
+import { esc, phaseLabel, phaseKey } from './util.js?v=20261024232110';
 
 const NOTE = 'Participant ranges are typical examples for drug trials, not strict rules. Trials of devices, procedures and behavioral programs can work differently.';
 
@@ -67,8 +67,9 @@ function cardHtml(key) {
   }
   const info = PHASE_INFO[key];
   if (!info) return '';
+  const name = phaseLabel(key === 'UNSPECIFIED' ? [] : key.split('+'));
   return `<p class="info-tag">${esc(info.tag)}</p>
-    <p class="info-title">${esc(info.title)}</p>
+    <p class="info-title">${esc(name)}</p>
     <p>${esc(info.body)}</p>
     ${info.people ? `<p class="info-people">${esc(info.people)}</p>` : ''}
     ${info.note ? `<p class="info-note">${esc(NOTE)}</p>` : ''}`;

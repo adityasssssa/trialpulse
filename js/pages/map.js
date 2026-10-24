@@ -1,6 +1,6 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261024231912';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024231912';
-import { esc, fmtInt, fmtPct, sourceLine } from '../util.js?v=20261024231912';
+import { loadIndex, loadSummary } from '../data.js?v=20261024232110';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024232110';
+import { esc, fmtInt, fmtPct, sourceLine } from '../util.js?v=20261024232110';
 
 // Count bins for the colour scale: darker = more high-risk trials in that city.
 const COUNT_BINS = [
