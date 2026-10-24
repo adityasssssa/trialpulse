@@ -1,28 +1,31 @@
 .PHONY: setup check data train report slides export all handcheck
 
+# The project venv created by `make setup`; no need to activate it first.
+PY := .venv/bin/python
+
 setup:
 	python3 -m venv .venv && . .venv/bin/activate && pip install -U pip && pip install -r requirements.txt && pip install -e .
 
 check:
-	python scripts/check_api.py
+	$(PY) scripts/check_api.py
 
 data:
-	python -m trialpulse.fetch
+	$(PY) -m trialpulse.fetch
 
 train:
-	python -m trialpulse.train
+	$(PY) -m trialpulse.train
 
 report:
-	python -m trialpulse.report
+	$(PY) -m trialpulse.report
 
 handcheck:
-	python -m trialpulse.handcheck
+	$(PY) -m trialpulse.handcheck
 
 slides:
-	python -m trialpulse.slides
+	$(PY) -m trialpulse.slides
 
 export:
-	python -m trialpulse.export
+	$(PY) -m trialpulse.export
 
 # full rebuild from a fresh API pull; ends with the website exports
 all: data train report slides export

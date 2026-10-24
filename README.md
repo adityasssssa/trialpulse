@@ -9,7 +9,7 @@ git clone https://github.com/adityasssssa/trialpulse.git
 cd trialpulse
 brew install libomp        # macOS only: OpenMP runtime LightGBM needs
 make setup                 # creates .venv and installs requirements
-source .venv/bin/activate
+source .venv/bin/activate  # optional: make targets use .venv/bin/python directly
 make check                 # step 0: confirm the ClinicalTrials.gov API works
 make data                  # pull terminated / completed / recruiting-MA trials -> data/raw/*.parquet
 make train                 # time-split model, metrics -> data/processed/metrics.csv, scored MA trials
@@ -22,7 +22,7 @@ make all                   # data -> train -> report -> slides -> export
 
 **Building a website or app on this data?** Start with [`HANDOFF.md`](HANDOFF.md): every file in [`exports/`](exports/), every field, and the display rules.
 
-Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`.
+Quick smoke test before the full pull: `.venv/bin/python -m trialpulse.fetch --limit 3000`.
 
 ## Spec and plan
 
