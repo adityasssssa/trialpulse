@@ -10,7 +10,9 @@ CATEGORICAL = ["phases", "study_type", "masking", "allocation",
 # planned_duration_months are computed (for trial cards) but not modelled:
 # after the leakage guards they are ~all null on historical trials and always present on recruiting
 # ones, so the model would learn from stale ESTIMATED records and score deployment off-distribution.
-NUMERIC = ["n_sites", "start_year", "min_age_years", "max_age_years",
+# start_year is used for the time split only: as a feature it cost <0.02 AUC to drop, and every
+# recruiting trial lies outside the training years, so the model can only extrapolate on it.
+NUMERIC = ["n_sites", "min_age_years", "max_age_years",
            "age_range_years", "n_conditions", "n_intervention_types", "eligibility_len",
            "n_exclusion_lines", "is_oncology", "is_rare"]
 

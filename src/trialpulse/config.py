@@ -15,7 +15,7 @@ FIELDS = [
     "PrimaryCompletionDate", "PrimaryCompletionDateType", "Condition", "InterventionType", "EligibilityCriteria",
     "MinimumAge", "MaximumAge", "Sex", "HealthyVolunteers", "DesignMasking",
     "DesignAllocation", "LocationFacility", "LocationCity", "LocationState",
-    "LocationCountry", "LocationGeoPoint",
+    "LocationCountry", "LocationGeoPoint", "ConditionMeshTerm", "ConditionAncestorTerm",
 ]
 
 # Training window from the brief (time-split, design-time features only)

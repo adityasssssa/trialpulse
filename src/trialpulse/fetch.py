@@ -45,6 +45,11 @@ def flatten(study: dict) -> dict:
         "allocation": _get(design, "designInfo", "allocation"),
         "sponsor_class": _get(p, "sponsorCollaboratorsModule", "leadSponsor", "class"),
         "conditions": "|".join(_get(p, "conditionsModule", "conditions", default=[]) or []),
+        # MeSH terms + ancestors (derived from conditions at registration); used for evaluation slices
+        "condition_mesh": "|".join(
+            m.get("term", "") for k in ("meshes", "ancestors")
+            for m in _get(study, "derivedSection", "conditionBrowseModule", k, default=[]) or []
+        ),
         "intervention_types": "|".join(
             i.get("type", "") for i in _get(p, "armsInterventionsModule", "interventions", default=[]) or []
         ),

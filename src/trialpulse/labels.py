@@ -15,7 +15,9 @@ import pandas as pd
 ACCRUAL_RE = re.compile(
     r"\baccru|\benrol+|\brecruit|\bpatients? (?:not|were not|could not)\b|"
     r"\b(?:low|slow|poor|insufficient|inadequate|lack of|no|few|not enough) (?:accrual|enrol+ment|recruitment|participants|patients|subjects|eligible)\b|"
-    r"\bunable to (?:recruit|enrol+|identify|find)\b|\bfailed to (?:recruit|enrol+)\b",
+    r"\bunable to (?:recruit|enrol+|identify|find)\b|\bfailed to (?:recruit|enrol+)\b|"
+    r"\b0 participants\b|\bno (?:potential|eligible) participants\b|"
+    r"\black of (?:sufficient |adequate |enough )?(?:participants|patients|subjects)\b",
     re.IGNORECASE,
 )
 # Reasons that are clearly NOT about accrual; these rows are excluded from strict training.
