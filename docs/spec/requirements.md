@@ -1,6 +1,6 @@
 # TrialPulse — Requirements
 
-**Challenge:** Hackachusetts H5 (Making Clinical Research More Accessible), hook into H3. DS+X Healthcare track.
+**Track:** DS+X Healthcare. Judged on the DS+X rubric: Idea 25%, Data science 25%, Technical 20%, Design 10%, Ethics 10%, Presentation 10%. Deadline: Devpost, 11:00 AM Sunday.
 **One-line:** Predict which currently recruiting Massachusetts clinical trials will fail to enroll, map who those trials are failing to reach, and produce a plain-language trial card for outreach.
 **Users:** clinical research coordinators and recruitment offices at MA hospitals; community health center outreach staff; secondarily sponsors deciding where to open sites. Not patients directly.
 
@@ -28,4 +28,4 @@ N2. Every synthetic or illustrative example is labeled "synthetic / illustrative
 N3. Cite the dataset actually used on screen (ClinicalTrials.gov, MassGIS, CDC PLACES).
 N4. State limits on screen: label noise, survivorship (unregistered trials invisible), reach map is an index not a validated model, national model applied to MA.
 N5. Runs on a fresh clone with a one-line command.
-N6. Kiro spec kept in repo; screenshot in README. Devpost submitted by 10:30 AM Sunday.
+N6. Devpost submitted by 10:30 AM Sunday (hard close 11:00). README has architecture, metrics table, data citations.

@@ -3,7 +3,7 @@
 ## Saturday
 
 - [ ] 0. Verify API from a laptop: `make check` (totalCount in tens of thousands, whyStopped populated)
-- [x] 1. Repo scaffold: requirements, Makefile, src package, Streamlit stub, Kiro spec
+- [x] 1. Repo scaffold: requirements, Makefile, src package, Streamlit stub, spec
 - [ ] 2. Pull data: `make data` (terminated+withdrawn all, completed sample, recruiting MA)
 - [ ] 3. Labels: strict + loose rule; exclude safety/funding/sponsor stops; hand-check 50, write agreement number in README
 - [x] 4. Features: design-time only; null enrollment when ACTUAL; age-range width (n_countries still TODO)
@@ -12,7 +12,7 @@
 - [ ] 7. Dashboard skeleton (parallel): ranked table, filters by condition/phase, trial card, site map
 - [ ] 8. Score recruiting MA trials; wire into dashboard; show count on screen
 - [ ] 9. Plain-language cards from structured fields; FKGL shown; "study team decides eligibility"; "not medical advice"
-- [ ] 10. Slides: one model chart, limits slide, ethics slide; Devpost draft; README with Kiro screenshot and data citations
+- [ ] 10. Slides: one model chart, limits slide, ethics slide; Devpost draft; README with architecture, metrics table and data citations
 - [ ] 11. Record 60-second backup demo video
 - [ ] 12. Rehearse twice with a timer; cut to 3:40
 

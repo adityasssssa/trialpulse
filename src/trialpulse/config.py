@@ -12,7 +12,7 @@ API = "https://clinicaltrials.gov/api/v2/studies"
 FIELDS = [
     "NCTId", "BriefTitle", "OverallStatus", "WhyStopped", "Phase", "StudyType",
     "EnrollmentCount", "EnrollmentType", "LeadSponsorClass", "StartDate",
-    "PrimaryCompletionDate", "Condition", "InterventionType", "EligibilityCriteria",
+    "PrimaryCompletionDate", "PrimaryCompletionDateType", "Condition", "InterventionType", "EligibilityCriteria",
     "MinimumAge", "MaximumAge", "Sex", "HealthyVolunteers", "DesignMasking",
     "DesignAllocation", "LocationFacility", "LocationCity", "LocationState",
     "LocationCountry", "LocationGeoPoint",

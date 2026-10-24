@@ -1,6 +1,6 @@
 # TrialPulse
 
-Predict which currently recruiting Massachusetts clinical trials will fail to enroll, map who those trials are failing to reach, and generate a plain-language trial card for outreach. Hackathon project (DS+X Healthcare / Hackachusetts H5), October 2026.
+Predict which currently recruiting Massachusetts clinical trials will fail to enroll, map who those trials are failing to reach, and generate a plain-language trial card for outreach. DS+X Healthcare track hackathon project, October 2026.
 
 ## Getting started
 
@@ -20,9 +20,7 @@ Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`
 
 ## Spec and plan
 
-The Kiro spec lives in [`.kiro/specs/trialpulse/`](.kiro/specs/trialpulse/) (`requirements.md`, `design.md`, `tasks.md`) and is the working task list.
-
-<!-- TODO: Kiro screenshot here (required for Hackachusetts eligibility) -->
+The spec lives in [`docs/spec/`](docs/spec/) (`requirements.md`, `design.md`, `tasks.md`) and is the working task list.
 
 **Evaluation:** time split, train on trials started 2008–2018, test on 2019–2021. Metrics table: `data/processed/metrics.csv`; figures in `figures/`.
 **Label hand-check agreement:** _TODO: fill in after checking 50 samples_ (`python -c "from trialpulse.labels import *; ..."`).
@@ -41,7 +39,7 @@ trialpulse/
 │   ├── labels.py              # whyStopped -> low-accrual label
 │   ├── features.py            # design-time features only (no leakage)
 │   └── train.py               # logreg baseline + LightGBM, metrics, scoring
-├── .kiro/specs/trialpulse/    # Kiro spec: requirements, design, tasks
+├── docs/spec/                 # requirements, design, tasks
 ├── figures/                   # ROC / PR / calibration / SHAP PNGs
 ├── data/raw, data/processed   # gitignored
 ├── notebooks/                 # exploration

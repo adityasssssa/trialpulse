@@ -1,6 +1,6 @@
 # TrialPulse — rules for working in this repo
 
-Read `.kiro/specs/trialpulse/*.md` first; it is the spec and the task list. Keep `tasks.md` checkboxes current.
+Read `docs/spec/*.md` first; it is the spec and the task list. Keep `tasks.md` checkboxes current.
 
 Hard rules (from the idea brief; judges will catch violations):
 - Design-time features only. Never use actual enrollment counts, completion dates as outcomes, or any field known only after a trial runs. When `enrollment_type == "ACTUAL"`, the enrollment count must be nulled.

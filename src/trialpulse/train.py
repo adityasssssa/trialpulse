@@ -1,6 +1,6 @@
 """Train and evaluate the enrollment-failure model, then score recruiting MA trials.
 
-Time split: train on start_year 2010-2018, test on 2019-2021 (adjust in config/here).
+Time split: train on start_year 2008-2018, test on 2019-2021 (adjust in config/here).
 Reports AUC-ROC, AUC-PR vs base rate, precision in top decile, Brier score,
 for a logistic-regression baseline and a LightGBM model.
 Usage: python -m trialpulse.train

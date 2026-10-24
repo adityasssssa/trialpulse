@@ -36,6 +36,7 @@ def flatten(study: dict) -> dict:
         "why_stopped": _get(p, "statusModule", "whyStopped"),
         "start_date": _get(p, "statusModule", "startDateStruct", "date"),
         "primary_completion_date": _get(p, "statusModule", "primaryCompletionDateStruct", "date"),
+        "primary_completion_type": _get(p, "statusModule", "primaryCompletionDateStruct", "type"),
         "phases": "|".join(design.get("phases", []) or []),
         "study_type": design.get("studyType"),
         "enrollment": _get(design, "enrollmentInfo", "count"),
