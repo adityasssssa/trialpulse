@@ -17,6 +17,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 import lightgbm as lgb
+import shap
 import joblib
 import matplotlib
 matplotlib.use("Agg")
@@ -26,7 +27,7 @@ from sklearn.metrics import RocCurveDisplay, PrecisionRecallDisplay
 
 from .config import RAW, PROCESSED, MODELS, TRAIN_START_YEAR, TRAIN_END_YEAR, ROOT
 from .labels import build_labeled
-from .features import make_features, CATEGORICAL, NUMERIC
+from .features import make_features, CATEGORICAL, NUMERIC, FEATURE_LABELS
 
 TEST_FROM_YEAR = 2019
 SCHEMES = ["strict", "loose"]
@@ -110,6 +111,31 @@ def save_ma_calibration(y, preds: dict):
     plt.savefig(FIGURES / "calibration_ma.png", dpi=150, bbox_inches="tight"); plt.close()
 
 
+def readable(name: str) -> str:
+    """'num__n_sites' -> 'Number of sites'; 'cat__phases_PHASE2' -> 'Phase: PHASE2'."""
+    kind, col = name.split("__", 1)
+    if kind == "num":
+        return FEATURE_LABELS.get(col, col)
+    base = max((c for c in CATEGORICAL if col.startswith(c + "_")), key=len)
+    value = col[len(base) + 1:].replace("infrequent_sklearn", "other (rare)")
+    return f"{FEATURE_LABELS.get(base, base)}: {value}"
+
+
+def save_shap(pipe, X: pd.DataFrame, top: int = 15) -> pd.DataFrame:
+    """Beeswarm of the top features on X -> figures/shap_summary.png; returns mean |SHAP| ranking."""
+    Xt = pipe[:-1].transform(X)
+    Xt = Xt.toarray() if hasattr(Xt, "toarray") else Xt
+    names = [readable(n) for n in pipe[:-1].get_feature_names_out()]
+    sv = shap.TreeExplainer(pipe[-1]).shap_values(Xt)
+    sv = sv[1] if isinstance(sv, list) else sv  # older shap returns [neg, pos]
+    shap.summary_plot(sv, Xt, feature_names=names, max_display=top, show=False)
+    plt.title("SHAP summary - strict LightGBM, 2019-2021 test trials\n"
+              "Source: ClinicalTrials.gov API v2. Numeric values standardized.", fontsize=10, loc="left")
+    plt.savefig(FIGURES / "shap_summary.png", dpi=150, bbox_inches="tight"); plt.close()
+    imp = pd.DataFrame({"feature": names, "mean_abs_shap": np.abs(sv).mean(axis=0)})
+    return imp.sort_values("mean_abs_shap", ascending=False).reset_index(drop=True)
+
+
 def make_models():
     return {
         # unweighted: class_weight="balanced" inflated probabilities (Brier 0.17 vs 0.04)
@@ -153,6 +179,9 @@ def main():
             sub = subgroup_auc(test, preds)
             sub.to_csv(PROCESSED / "subgroup_metrics.csv", index=False)
             print(sub.to_string(index=False))
+            imp = save_shap(models["lightgbm"], test[X_cols])
+            imp.to_csv(PROCESSED / "shap_importance.csv", index=False)
+            print(imp.head(10).to_string(index=False))
 
     metrics = pd.DataFrame(results)
     metrics.to_csv(PROCESSED / "metrics.csv", index=False)

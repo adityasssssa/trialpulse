@@ -16,6 +16,18 @@ NUMERIC = ["n_sites", "min_age_years", "max_age_years",
            "age_range_years", "n_conditions", "n_intervention_types", "eligibility_len",
            "n_exclusion_lines", "is_oncology", "is_rare"]
 
+# Readable names for figures (SHAP etc.)
+FEATURE_LABELS = {
+    "n_sites": "Number of sites", "min_age_years": "Minimum age (years)",
+    "max_age_years": "Maximum age (years)", "age_range_years": "Age range width (years)",
+    "n_conditions": "Number of conditions", "n_intervention_types": "Number of intervention types",
+    "eligibility_len": "Eligibility text length", "n_exclusion_lines": "Number of exclusion criteria",
+    "is_oncology": "Oncology trial", "is_rare": "Rare-disease trial",
+    "phases": "Phase", "study_type": "Study type", "masking": "Masking", "allocation": "Allocation",
+    "sponsor_class": "Sponsor type", "sex": "Sex eligible", "healthy_volunteers": "Healthy volunteers",
+    "site_country": "Site country",
+}
+
 RARE_WORDS = re.compile(r"\b(?:rare|orphan|syndrome)\b", re.I)
 ONC_WORDS = re.compile(r"\b(?:cancer|carcinoma|tumou?r|lymphoma|leukemia|melanoma|sarcoma|neoplasm)\b", re.I)
 
