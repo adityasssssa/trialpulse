@@ -203,6 +203,10 @@ def main():
                 joblib.dump(pipe, MODELS / f"{name}{suffix}.joblib")
             fitted[population, scheme] = models
             if default and scheme == "strict":
+                # test-set predictions for slide figures (slides.py)
+                test[["nct_id", "label", "n_us_sites", "n_ma_sites"]].assign(
+                    **{f"p_{n}": p for n, p in preds.items()}
+                ).to_parquet(PROCESSED / "test_predictions.parquet", index=False)
                 save_ma_calibration(y[ma], {n: p[ma] for n, p in preds.items()})
                 sub = subgroup_auc(test, preds)
                 sub.to_csv(PROCESSED / "subgroup_metrics.csv", index=False)

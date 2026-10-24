@@ -1,4 +1,4 @@
-.PHONY: setup check data train report handcheck
+.PHONY: setup check data train report slides handcheck
 
 setup:
 	python3 -m venv .venv && . .venv/bin/activate && pip install -U pip && pip install -r requirements.txt && pip install -e .
@@ -17,3 +17,6 @@ report:
 
 handcheck:
 	python -m trialpulse.handcheck
+
+slides:
+	python -m trialpulse.slides

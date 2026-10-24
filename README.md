@@ -13,7 +13,9 @@ source .venv/bin/activate
 make check                 # step 0: confirm the ClinicalTrials.gov API works
 make data                  # pull terminated / completed / recruiting-MA trials -> data/raw/*.parquet
 make train                 # time-split model, metrics -> data/processed/metrics.csv, scored MA trials
-make report                # ranked MA trials CSV + top-20 table figure for slides
+make report                # ranked MA trials CSV
+make slides                # slide figures -> figures/slides/
+make handcheck             # whyStopped samples for the label hand-check
 ```
 
 Quick smoke test before the full pull: `python -m trialpulse.fetch --limit 3000`.
@@ -26,6 +28,31 @@ The spec lives in [`docs/spec/`](docs/spec/) (`requirements.md`, `design.md`, `t
 **Label hand-check agreement:** _TODO: fill in after checking 50 samples_. `make handcheck` exports random whyStopped samples (random seed `20261024`, set in `src/trialpulse/handcheck.py`) from the modelling population (interventional, start 2008–2021, not retrospectively registered) to `data/processed/`: 50 accrual positives (`handcheck_50.csv`) and 25 each of other, unknown and mixed (`handcheck_other_25.csv`, `handcheck_unknown_25.csv`, `handcheck_mixed_25.csv`). Fill in `human_label` and compare with `auto_label`.
 
 **Data source:** ClinicalTrials.gov API v2.
+
+## Results
+
+_Final pending label hand-check._
+
+Strict labels unless noted. Test set: interventional trials started 2019–2021, after excluding retrospective registrations; trained on 2008–2018. "US" and "MA" slices are test trials with at least one US / Massachusetts site. Multiples in brackets are relative to the base rate. Source: ClinicalTrials.gov API v2; full table in `data/processed/metrics.csv`.
+
+| Training population | Labels | Evaluated on | Model | Test trials | Base rate | AUC-ROC | AUC-PR | Precision, top 10% | Brier |
+|---|---|---|---|---|---|---|---|---|---|
+| All countries | strict | full test | **LightGBM** | 30,087 | 5.6% | **0.762** | 0.211 (3.8×) | 0.200 (3.6×) | 0.049 |
+| All countries | strict | full test | Logistic regression | 30,087 | 5.6% | 0.752 | 0.207 (3.7×) | 0.200 (3.5×) | 0.050 |
+| All countries | strict | US slice | **LightGBM** | 13,517 | 7.1% | **0.730** | 0.172 (2.4×) | 0.211 (3.0×) | 0.062 |
+| All countries | strict | US slice | Logistic regression | 13,517 | 7.1% | 0.720 | 0.182 (2.6×) | 0.216 (3.0×) | 0.062 |
+| All countries | strict | MA slice | **LightGBM** | 1,679 | 5.1% | **0.736** | 0.150 (2.9×) | 0.191 (3.7×) | 0.046 |
+| All countries | strict | MA slice | Logistic regression | 1,679 | 5.1% | 0.717 | 0.176 (3.4×) | 0.167 (3.2×) | 0.046 |
+| All countries | loose | full test | LightGBM | 32,901 | 5.1% | 0.751 | 0.154 (3.0×) | 0.168 (3.3×) | 0.046 |
+| All countries | loose | full test | Logistic regression | 32,901 | 5.1% | 0.739 | 0.152 (3.0×) | 0.171 (3.3×) | 0.046 |
+| US only | strict | full test (US) | LightGBM | 13,517 | 7.1% | 0.727 | 0.170 (2.4×) | 0.202 (2.9×) | 0.062 |
+| US only | strict | full test (US) | Logistic regression | 13,517 | 7.1% | 0.711 | 0.168 (2.4×) | 0.206 (2.9×) | 0.063 |
+| US only | loose | full test (US) | LightGBM | 15,062 | 6.3% | 0.721 | 0.146 (2.3×) | 0.175 (2.8×) | 0.057 |
+| US only | loose | full test (US) | Logistic regression | 15,062 | 6.3% | 0.705 | 0.145 (2.3×) | 0.176 (2.8×) | 0.057 |
+
+LightGBM beat logistic regression by about 0.01 AUC on the full test set (0.762 vs 0.752), under the 0.03 bar. The default model is all countries, strict labels, LightGBM; the US-only variant is kept for the record (it scored 0.727 on its own test set, below our 0.75 bar).
+
+Slide figures (`make slides`, `figures/slides/`): ROC and precision–recall for both models, calibration on the MA slice, top-10 SHAP drivers, and the top 20 recruiting MA trials by predicted risk.
 
 ## Limits
 
@@ -43,10 +70,13 @@ trialpulse/
 │   ├── fetch.py               # ClinicalTrials.gov v2 pull + flatten
 │   ├── labels.py              # whyStopped -> low-accrual label
 │   ├── features.py            # design-time features only (no leakage)
-│   ├── train.py               # logreg baseline + LightGBM, metrics, scoring
-│   └── report.py              # ranked CSV + top-20 figure
+│   ├── train.py               # logreg baseline + LightGBM, metrics, SHAP, scoring
+│   ├── report.py              # ranked CSV of recruiting MA trials
+│   ├── slides.py              # slide figures, one style
+│   └── handcheck.py           # label hand-check samples
 ├── docs/spec/                 # requirements, design, tasks
-├── figures/                   # ROC / PR / calibration / SHAP PNGs
+├── figures/                   # ROC / PR / calibration / SHAP PNGs (gitignored)
+│   └── slides/                # slide figures (committed)
 ├── data/raw, data/processed   # gitignored
 ├── notebooks/                 # exploration
 └── requirements.txt, Makefile, pyproject.toml
