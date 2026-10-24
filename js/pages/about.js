@@ -1,5 +1,5 @@
-import { loadSummary, loadMetrics, loadFeatureImportance } from '../data.js?v=20261024233602';
-import { esc, fmtInt, fmtPct, fmtTimes, fmtNum, sourceLine } from '../util.js?v=20261024233602';
+import { loadSummary, loadMetrics, loadFeatureImportance } from '../data.js?v=20261024234430';
+import { esc, fmtInt, fmtPct, fmtTimes, fmtNum, sourceLine } from '../util.js?v=20261024234430';
 
 const SLICE_LABELS = { all: 'Full test set', us: 'Trials with a US site', ma: 'Trials with a Massachusetts site' };
 const MODEL_LABELS = { lightgbm: 'LightGBM (default)', logreg: 'Logistic regression (baseline)' };

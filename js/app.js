@@ -1,19 +1,19 @@
 // Hash router + shell behaviour (theme toggle, nav state, footer source line).
-import { loadSummary } from './data.js?v=20261024233602';
-import { esc } from './util.js?v=20261024233602';
-import { initInfo } from './info.js?v=20261024233602';
+import { loadSummary } from './data.js?v=20261024234430';
+import { esc } from './util.js?v=20261024234430';
+import { initInfo } from './info.js?v=20261024234430';
 
 const main = document.getElementById('main');
 
 const routes = [
-  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024233602'), nav: 'home' },
-  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024233602'), nav: 'trials' },
-  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024233602'), nav: 'trials' },
-  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024233602'), nav: 'about' },
-  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024233602'), nav: 'ethics' },
-  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024233602'), nav: 'map' },
-  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024233602'), nav: 'faq' },
-  { pattern: /^\/team$/, load: () => import('./pages/team.js?v=20261024233602'), nav: 'team' },
+  { pattern: /^\/?$/, load: () => import('./pages/home.js?v=20261024234430'), nav: 'home' },
+  { pattern: /^\/trials$/, load: () => import('./pages/trials.js?v=20261024234430'), nav: 'trials' },
+  { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js?v=20261024234430'), nav: 'trials' },
+  { pattern: /^\/about$/, load: () => import('./pages/about.js?v=20261024234430'), nav: 'about' },
+  { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js?v=20261024234430'), nav: 'ethics' },
+  { pattern: /^\/map$/, load: () => import('./pages/map.js?v=20261024234430'), nav: 'map' },
+  { pattern: /^\/faq$/, load: () => import('./pages/faq.js?v=20261024234430'), nav: 'faq' },
+  { pattern: /^\/team$/, load: () => import('./pages/team.js?v=20261024234430'), nav: 'team' },
 ];
 
 let renderToken = 0;
@@ -98,7 +98,12 @@ async function initFooter() {
   try {
     const s = await loadSummary();
     const el = document.getElementById('footer-source');
-    if (el) el.textContent = `Source: ${s.data_source || 'ClinicalTrials.gov API v2'}, data pulled ${s.data_pulled}.`;
+    const days = Math.max(0, Math.floor((Date.now() - new Date(`${s.data_pulled}T00:00:00Z`).getTime()) / 86400000));
+    const age = Number.isFinite(days) ? ` (${days === 0 ? 'today' : days === 1 ? '1 day ago' : `${days} days ago`})` : '';
+    if (el) el.textContent = `Source: ${s.data_source || 'ClinicalTrials.gov API v2'}, data pulled ${s.data_pulled}${age}. Trial pages also check the registry live once a day.`;
+    const build = document.querySelector('meta[name="build-id"]')?.content;
+    const fb = document.getElementById('footer-build');
+    if (fb && build && build !== 'dev') fb.textContent = `Site build ${build.replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3 $4:$5 UTC')}.`;
   } catch (e) { /* footer keeps its default text */ }
 }
 

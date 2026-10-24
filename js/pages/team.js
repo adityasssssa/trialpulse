@@ -1,5 +1,5 @@
-import { loadSummary } from '../data.js?v=20261024233602';
-import { esc, fmtInt, fmtPct, sourceLine } from '../util.js?v=20261024233602';
+import { loadSummary } from '../data.js?v=20261024234430';
+import { esc, fmtInt, fmtPct, sourceLine } from '../util.js?v=20261024234430';
 
 const TEAM = ['Partaj Singh', 'Aditya Sharma', 'Aarush Lolla', 'Shivansh Badola'];
 const REPO = 'https://github.com/adityasssssa/trialpulse';

@@ -1,6 +1,6 @@
-import { loadSummary, loadIndex } from '../data.js?v=20261024233602';
-import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261024233602';
-import { phaseWithInfo } from '../info.js?v=20261024233602';
+import { loadSummary, loadIndex } from '../data.js?v=20261024234430';
+import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261024234430';
+import { phaseWithInfo } from '../info.js?v=20261024234430';
 
 const arrow = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
