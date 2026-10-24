@@ -127,7 +127,10 @@ export async function render(main, { params }) {
     <article class="detail">
       <div class="detail-head">
         <p class="crumbs"><a href="#/trials">Ranked trials</a> › Rank ${fmtInt(t.risk_rank)} of ${fmtInt(summary.n_trials_scored)}</p>
-        <h1>${esc(t.title)}</h1>
+        ${(t.conditions && t.conditions[0])
+          ? `<h1>${esc(t.conditions[0])}${/^Phase|^Early/.test(phaseLabel(t.phases)) ? `<span class="h1-sub"> · ${esc(phaseLabel(t.phases))} trial</span>` : ''}</h1>
+             <p class="reg-title-full"><span class="muted">Registered title:</span> ${esc(t.title)}</p>`
+          : `<h1>${esc(t.title)}</h1>`}
         <div class="ids">
           <code>${esc(t.nct_id)}</code>
           ${tierBadge(t.risk_tier)}
