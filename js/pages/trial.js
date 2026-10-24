@@ -1,10 +1,10 @@
-import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261024232110';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024232110';
-import { phaseWithInfo } from '../info.js?v=20261024232110';
+import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261024233040';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024233040';
+import { phaseWithInfo } from '../info.js?v=20261024233040';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
-} from '../util.js?v=20261024232110';
+} from '../util.js?v=20261024233040';
 
 const extIcon = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -127,7 +127,10 @@ export async function render(main, { params }) {
     <article class="detail">
       <div class="detail-head">
         <p class="crumbs"><a href="#/trials">Ranked trials</a> › Rank ${fmtInt(t.risk_rank)} of ${fmtInt(summary.n_trials_scored)}</p>
-        <h1>${esc(t.title)}</h1>
+        ${(t.conditions && t.conditions[0])
+          ? `<h1>${esc(t.conditions[0])}${/^Phase|^Early/.test(phaseLabel(t.phases)) ? `<span class="h1-sub"> · ${esc(phaseLabel(t.phases))} trial</span>` : ''}</h1>
+             <p class="reg-title-full"><span class="muted">Registered title:</span> ${esc(t.title)}</p>`
+          : `<h1>${esc(t.title)}</h1>`}
         <div class="ids">
           <code>${esc(t.nct_id)}</code>
           ${tierBadge(t.risk_tier)}

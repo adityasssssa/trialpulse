@@ -1,10 +1,10 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261024232110';
-import { softNavigate } from '../app.js?v=20261024232110';
+import { loadIndex, loadSummary } from '../data.js?v=20261024233040';
+import { softNavigate } from '../app.js?v=20261024233040';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, phaseKey, sponsorLabel,
   norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER,
-} from '../util.js?v=20261024232110';
-import { phaseWithInfo, infoButton } from '../info.js?v=20261024232110';
+} from '../util.js?v=20261024233040';
+import { phaseWithInfo, infoButton } from '../info.js?v=20261024233040';
 
 const PAGE = 50;
 let prepared = null; // index rows with precomputed search text
