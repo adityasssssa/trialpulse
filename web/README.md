@@ -17,7 +17,7 @@ web/
 │       ├── app.js       hash router, theme, footer source line
 │       ├── data.js      loads exports; caches the 12 MB full file after first use
 │       ├── util.js      formatting, labels, HTML escaping
-│       └── pages/       home.js, trials.js, trial.js, about.js
+│       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js
 ├── build.sh             src + ../exports → dist/
 ├── dev.sh               local server with a data copy (no build)
 ├── deploy-gh-pages.sh   publish dist/ to the gh-pages branch
@@ -32,6 +32,7 @@ Pages (all under `#/` so they work on any static host without rewrite rules):
 | `#/trials` | All trials ranked by risk with filters (tier, condition category, phase, sponsor type, city, facility) and search on title, condition and NCT ID. Filters live in the URL, so a filtered view can be shared |
 | `#/trial/NCT…` | Risk, tier, percentile, "N× typical", the three top reasons, trial facts, Massachusetts sites with a map, verbatim eligibility criteria and the ClinicalTrials.gov link |
 | `#/about` | What is and is not predicted, training and test setup, the metrics table from `metrics.json`, the label hand-check, global feature importance, the evaluation figures and every known limit from HANDOFF.md |
+| `#/ethics` | Our promise, what is and is not predicted, data used, how we checked ourselves, a fairness table and chart computed live from `ma_trials_index.json`, expert review notes, known limits, what's next, and links |
 
 Data loading: `ma_trials_index.json` (4 MB) powers the list, home and search. `ma_trials.json` (12.5 MB, with eligibility text) is fetched only when a trial page opens and is then cached for the session.
 
