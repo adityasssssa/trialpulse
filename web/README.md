@@ -96,6 +96,11 @@ The scores come from `../exports/`, produced by the Python pipeline in this repo
 
 Independently of the pipeline, every trial page checks the registry live once a day for that trial's current status, so a trial that has stopped recruiting since the last pull is flagged on its page.
 
+## Data notes
+
+- The registry's city field has exact misspellings. The map groups them with the correct city for display only; `../exports/` is never edited: "Worester" and "Worchester" → Worcester (one site each), "Sommerville" → Somerville (one site). Other similar-looking pairs (East and South Weymouth, North and South Dartmouth, West Springfield, Newton Center, North Worcester) are distinct real places and are left alone. The ranked list's city filter still uses the registry spelling, so a link from the map's Worcester row omits the two misspelled sites.
+- Two of the three misspelled sites have no registry coordinates, so they appear in the map's table but not as circles.
+
 ## Display rules the site follows
 
 From `HANDOFF.md`; judges check these.

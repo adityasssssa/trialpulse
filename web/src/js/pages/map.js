@@ -6,7 +6,21 @@ import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, pa
 // Massachusetts bounding box (south-west, north-east) with a little padding.
 const MA_BOUNDS = [[41.15, -73.65], [43.0, -69.8]];
 
+// Display-only fixes for exact registry misspellings. exports/ is never edited.
+const CITY_FIXES = { Worester: 'Worcester', Worchester: 'Worcester', Sommerville: 'Somerville' };
+const cityName = (c) => CITY_FIXES[c] || c;
+// A percentage is only shown for cities with at least this many matching trials.
+const MIN_N = 10;
+const SMALL_COLOR = '#c9c4b8';
+
 const METRICS = {
+  share: { label: 'Share of trials that are high risk', bins: [
+    { min: 0, max: 0, label: '0%', color: '#f1e9e3' },
+    { min: 0.0001, max: 0.05, label: 'Under 5%', color: '#fcbba1' },
+    { min: 0.05, max: 0.1, label: '5–10%', color: '#fb6a4a' },
+    { min: 0.1, max: 0.2, label: '10–20%', color: '#cb181d' },
+    { min: 0.2, max: Infinity, label: 'Over 20%', color: '#67000d' },
+  ], value: (c) => c.share, text: (c) => (c.total < MIN_N ? `Too few trials (${fmtInt(c.total)}) to compare a percentage` : `${fmtPct(c.share)} high risk (${fmtInt(c.high)} of ${fmtInt(c.total)} trials)`) },
   high: { label: 'High-risk trials', bins: [
     { min: 0, max: 0, label: 'None', color: '#f1e9e3' },
     { min: 1, max: 1, label: '1', color: '#fcbba1' },
@@ -14,13 +28,6 @@ const METRICS = {
     { min: 4, max: 9, label: '4–9', color: '#cb181d' },
     { min: 10, max: Infinity, label: '10 or more', color: '#67000d' },
   ], value: (c) => c.high, text: (c) => `${fmtInt(c.high)} high-risk of ${fmtInt(c.total)} trials` },
-  share: { label: 'Share of trials that are high risk', bins: [
-    { min: 0, max: 0, label: '0%', color: '#f1e9e3' },
-    { min: 0.0001, max: 0.05, label: 'Under 5%', color: '#fcbba1' },
-    { min: 0.05, max: 0.1, label: '5–10%', color: '#fb6a4a' },
-    { min: 0.1, max: 0.2, label: '10–20%', color: '#cb181d' },
-    { min: 0.2, max: Infinity, label: 'Over 20%', color: '#67000d' },
-  ], value: (c) => c.share, text: (c) => `${fmtPct(c.share)} high risk (${fmtInt(c.high)} of ${fmtInt(c.total)})` },
   all: { label: 'All matching trials', bins: [
     { min: 1, max: 1, label: '1', color: '#dbe9f3' },
     { min: 2, max: 9, label: '2–9', color: '#a9c1d4' },
@@ -53,10 +60,11 @@ function aggregate(trials, coords) {
   for (const t of trials) {
     const seen = new Set();
     for (const s of t.ma_sites || []) {
-      if (!s.city || seen.has(s.city)) continue;
-      seen.add(s.city);
-      if (!cities.has(s.city)) cities.set(s.city, { city: s.city, total: 0, high: 0, latest: null, ...(coords.get(s.city) || { lat: null, lon: null }) });
-      const c = cities.get(s.city);
+      const name = s.city ? cityName(s.city) : null;
+      if (!name || seen.has(name)) continue;
+      seen.add(name);
+      if (!cities.has(name)) cities.set(name, { city: name, total: 0, high: 0, latest: null, ...(coords.get(name) || { lat: null, lon: null }) });
+      const c = cities.get(name);
       c.total += 1;
       if (t.risk_tier === 'high') c.high += 1;
       if (t.start_date && (!c.latest || t.start_date > c.latest)) c.latest = t.start_date;
@@ -69,7 +77,9 @@ function sortRows(rows, key, dir) {
   const m = dir === 'asc' ? 1 : -1;
   return [...rows].sort((a, b) => {
     if (key === 'city') return m * a.city.localeCompare(b.city);
-    const d = (a[key] ?? -1) - (b[key] ?? -1);
+    const va = key === 'share' && a.total < MIN_N ? -1 : (a[key] ?? -1);
+    const vb = key === 'share' && b.total < MIN_N ? -1 : (b[key] ?? -1);
+    const d = va - vb;
     return d ? m * d : b.total - a.total || a.city.localeCompare(b.city);
   });
 }
@@ -102,15 +112,15 @@ export async function render(main, { query }) {
   document.title = 'Map · TrialPulse';
   const [index, summary] = await Promise.all([loadIndex(), loadSummary()]);
   const f = parseQuery(query);
-  const metric = METRICS[f.metric] ? f.metric : 'high';
-  const sortKey = ['city', 'total', 'high', 'share', 'latest'].includes(f.sort) ? f.sort : 'high';
+  const metric = METRICS[f.metric] ? f.metric : 'share';
+  const sortKey = ['city', 'total', 'high', 'share', 'latest'].includes(f.sort) ? f.sort : 'total';
   const sortDir = f.dir === 'asc' ? 'asc' : 'desc';
 
   // Static option lists and city coordinates come from the full index.
   const coords = new Map();
   const phases = new Map(); const cats = new Map(); const sponsors = new Map(); const years = new Set();
   for (const t of index) {
-    for (const s of t.ma_sites || []) if (s.city && s.lat != null && !coords.has(s.city)) coords.set(s.city, { lat: s.lat, lon: s.lon });
+    for (const s of t.ma_sites || []) if (s.city && s.lat != null && !coords.has(cityName(s.city))) coords.set(cityName(s.city), { lat: s.lat, lon: s.lon });
     const pk = phaseKey(t.phases); phases.set(pk, (phases.get(pk) || 0) + 1);
     for (const c of t.condition_categories || []) cats.set(c, (cats.get(c) || 0) + 1);
     const sp = t.sponsor_class || 'UNSPECIFIED'; sponsors.set(sp, (sponsors.get(sp) || 0) + 1);
@@ -164,6 +174,7 @@ export async function render(main, { query }) {
         </section>
         <section class="section" aria-labelledby="table-h">
           <h2 id="table-h">By city</h2>
+          <p class="small muted">Percentages are shown for cities with at least ${MIN_N} matching trials. Registry misspellings of Worcester and Somerville are grouped with the correct city.</p>
           <div class="card" style="padding:0;overflow:hidden" id="city-table"></div>
           ${sourceLine(summary)}
         </section>
@@ -198,8 +209,21 @@ export async function render(main, { query }) {
     ? `${fmtInt(trials.length)} of ${fmtInt(index.length)} trials match · ${fmtInt(nHigh)} high risk · ${fmtInt(rows.length)} cities`
     : `All ${fmtInt(index.length)} trials · ${fmtInt(nHigh)} high risk · ${fmtInt(rows.length)} cities`;
   const M = METRICS[metric];
-  main.querySelector('#map-legend').innerHTML = `<ul class="map-legend" aria-label="Colour scale">${M.bins.map((b) => `<li><span class="swatch" style="background:${b.color}"></span>${esc(b.label)}</li>`).join('')}</ul>`;
-  main.querySelector('#map-note').textContent = `Circle size follows the number of matching trials in the city. ${fmtInt(rows.length - located.length)} city name${rows.length - located.length === 1 ? '' : 's'} without registry coordinates appear only in the table.`;
+  const maxTotalAll = Math.max(...rows.map((r) => r.total), 1);
+  const radiusOf = (total) => 6 + 24 * Math.sqrt(total / maxTotalAll);
+  const sizeSamples = [...new Set([10, 100, 1000, maxTotalAll].filter((n) => n <= maxTotalAll && n >= 1))].sort((a, b) => a - b).slice(-3);
+  const sizeLegend = `<div class="size-legend" aria-label="Circle size scale"><span class="legend-title">Circle size: matching trials</span>
+    <svg viewBox="0 0 ${sizeSamples.length * 90} 72" width="${sizeSamples.length * 90}" height="72" aria-hidden="true">${sizeSamples.map((n, i) => `<circle cx="${45 + i * 90}" cy="34" r="${radiusOf(n).toFixed(1)}" fill="none" stroke="currentColor" stroke-width="1.5"></circle><text x="${45 + i * 90}" y="68" text-anchor="middle" font-size="11">${fmtInt(n)}</text>`).join('')}</svg></div>`;
+  const stateShare = trials.length ? nHigh / trials.length : 0;
+  const colorTitle = metric === 'share' ? `Circle colour: share of the city's matching trials that are high risk (cities with at least ${MIN_N} matching trials)` : `Circle colour: ${M.label.toLowerCase()}`;
+  main.querySelector('#map-legend').innerHTML = `
+    <div class="legend-block"><span class="legend-title">${esc(colorTitle)}</span>
+      <ul class="map-legend" aria-label="Colour scale">${M.bins.map((b) => `<li><span class="swatch" style="background:${b.color}"></span>${esc(b.label)}</li>`).join('')}${metric === 'share' ? `<li><span class="swatch" style="background:${SMALL_COLOR}"></span>Fewer than ${MIN_N} trials: no percentage</li>` : ''}</ul>
+      <p class="small legend-compare">For comparison, ${fmtPct(stateShare)} of the ${fmtInt(trials.length)} matching trials statewide are high risk${anyFilter ? '' : ' (10% by definition: the high tier is the top 10%)'}.</p>
+    </div>
+    ${sizeLegend}`;
+  const missing = rows.length - located.length;
+  main.querySelector('#map-note').textContent = missing ? `${fmtInt(missing)} city name${missing === 1 ? '' : 's'} without registry coordinates appear only in the table.` : '';
 
   // Year chart.
   const yc = main.querySelector('#year-card');
@@ -219,10 +243,10 @@ export async function render(main, { query }) {
   };
   main.querySelector('#city-table').innerHTML = `<div class="table-wrap"><table class="data map-table">
     <caption class="visually-hidden">Matching trials per Massachusetts city with the number and share in the high-risk tier</caption>
-    <thead><tr>${th('city', 'City')}${th('total', 'Trials', true)}${th('high', 'High risk', true)}${th('share', 'Share high risk', true)}${th('latest', 'Newest start', true)}<th scope="col">Ranked list</th></tr></thead>
+    <thead><tr>${th('city', 'City')}${th('total', 'Trials', true)}${th('high', 'High risk', true)}${th('share', '% high risk', true)}${th('latest', 'Newest start', true)}<th scope="col">Ranked list</th></tr></thead>
     <tbody>${sorted.map((r) => `<tr>
       <th scope="row">${esc(r.city)}${r.lat == null ? ' <span class="muted small">(not on map)</span>' : ''}</th>
-      <td class="num">${fmtInt(r.total)}</td><td class="num">${fmtInt(r.high)}</td><td class="num">${fmtPct(r.share)}</td><td class="num">${esc(r.latest || '—')}</td>
+      <td class="num">${fmtInt(r.total)}</td><td class="num">${fmtInt(r.high)}</td><td class="num">${r.total < MIN_N ? '<span aria-label="Too few trials to compare a percentage">—</span>' : fmtPct(r.share)}</td><td class="num">${esc(r.latest || '—')}</td>
       <td><a href="#/trials?${buildQuery({ city: r.city, ...Object.fromEntries(listQuery ? listQuery.split('&').map((p) => p.split('=').map(decodeURIComponent)) : []) })}">All</a>${r.high ? ` · <a href="#/trials?${buildQuery({ city: r.city, tier: 'high' })}">High risk</a>` : ''}</td>
     </tr>`).join('')}</tbody></table></div>`;
 
@@ -242,11 +266,10 @@ export async function render(main, { query }) {
   }
   const layer = container._layer;
   layer.clearLayers();
-  const maxTotal = Math.max(...located.map((r) => r.total), 1);
-  const radius = (total) => 6 + 24 * Math.sqrt(total / maxTotal);
   for (const r of [...located].sort((a, b) => b.total - a.total)) {
-    const b = binFor(M.bins, M.value(r));
-    const m = L.circleMarker([r.lat, r.lon], { radius: radius(r.total), color: '#3b2a26', weight: 1, fillColor: b.color, fillOpacity: 0.85 });
+    const small = metric === 'share' && r.total < MIN_N;
+    const fill = small ? SMALL_COLOR : binFor(M.bins, M.value(r)).color;
+    const m = L.circleMarker([r.lat, r.lon], { radius: radiusOf(r.total), color: '#3b2a26', weight: 1, fillColor: fill, fillOpacity: small ? 0.7 : 0.85 });
     const text = `<strong>${esc(r.city)}</strong><br>${M.text(r)}${r.latest ? `<br>Newest start: ${esc(r.latest)}` : ''}`;
     m.bindTooltip(text, { direction: 'top', opacity: 0.95 });
     m.bindPopup(`${text}<br><a href="#/trials?${buildQuery({ city: r.city, tier: r.high ? 'high' : '' })}">See ${r.high ? 'the high-risk' : 'all'} trials in ${esc(r.city)}</a>`);

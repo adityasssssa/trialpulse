@@ -493,3 +493,11 @@ table.data th[aria-sort="ascending"] .sort-link, table.data th[aria-sort="descen
 .live-badge.ok { color: var(--lowers); background: var(--lowers-bg); border-color: var(--lowers); }
 .live-badge.changed { color: var(--tier-elevated); background: var(--tier-elevated-bg); border-color: var(--tier-elevated-border); }
 dl.small-facts { font-size: 0.92rem; }
+
+/* ---------- Map legend v2 ---------- */
+.legend-block { margin-top: 12px; }
+.legend-title { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.legend-compare { margin: 6px 0 0; }
+.size-legend { margin-top: 10px; color: var(--muted); }
+.size-legend svg { display: block; max-width: 100%; height: auto; }
+.size-legend text { fill: var(--text); font-family: var(--font-ui); }
