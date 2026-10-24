@@ -6,12 +6,12 @@ import pandas as pd
 
 CATEGORICAL = ["phases", "study_type", "enrollment_type", "masking", "allocation",
                "sponsor_class", "sex", "healthy_volunteers", "site_country"]
-NUMERIC = ["enrollment", "n_sites", "start_year", "min_age_years", "max_age_years",
-           "n_conditions", "n_intervention_types", "eligibility_len", "n_exclusion_lines",
-           "planned_duration_months", "is_oncology", "is_rare"]
+NUMERIC = ["anticipated_enrollment", "n_sites", "start_year", "min_age_years", "max_age_years",
+           "age_range_years", "n_conditions", "n_intervention_types", "eligibility_len",
+           "n_exclusion_lines", "planned_duration_months", "is_oncology", "is_rare"]
 
-RARE_WORDS = re.compile(r"\b(rare|orphan|syndrome)\b", re.I)
-ONC_WORDS = re.compile(r"\b(cancer|carcinoma|tumou?r|lymphoma|leukemia|melanoma|sarcoma|neoplasm)\b", re.I)
+RARE_WORDS = re.compile(r"\b(?:rare|orphan|syndrome)\b", re.I)
+ONC_WORDS = re.compile(r"\b(?:cancer|carcinoma|tumou?r|lymphoma|leukemia|melanoma|sarcoma|neoplasm)\b", re.I)
 
 
 def _age_years(s):
@@ -26,12 +26,15 @@ def _age_years(s):
 
 def make_features(df: pd.DataFrame) -> pd.DataFrame:
     f = df.copy()
+    # LEAKAGE GUARD: actual enrollment is known only after the trial runs. Keep anticipated only.
+    f["anticipated_enrollment"] = f["enrollment"].where(f["enrollment_type"] != "ACTUAL")
     f["start_year"] = pd.to_datetime(f["start_date"], errors="coerce").dt.year
     pcd = pd.to_datetime(f["primary_completion_date"], errors="coerce")
     sd = pd.to_datetime(f["start_date"], errors="coerce")
     f["planned_duration_months"] = (pcd - sd).dt.days / 30.4
     f["min_age_years"] = f["min_age"].map(_age_years)
     f["max_age_years"] = f["max_age"].map(_age_years)
+    f["age_range_years"] = f["max_age_years"].fillna(100) - f["min_age_years"].fillna(0)
     f["n_conditions"] = f["conditions"].fillna("").str.count(r"\|") + (f["conditions"].fillna("") != "")
     f["n_intervention_types"] = f["intervention_types"].fillna("").str.count(r"\|") + (f["intervention_types"].fillna("") != "")
     elig = f["eligibility_text"].fillna("")

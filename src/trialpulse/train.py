@@ -16,12 +16,19 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 import lightgbm as lgb
 import joblib
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from sklearn.calibration import calibration_curve
+from sklearn.metrics import RocCurveDisplay, PrecisionRecallDisplay
 
-from .config import RAW, PROCESSED, MODELS, TRAIN_START_YEAR, TRAIN_END_YEAR
+from .config import RAW, PROCESSED, MODELS, TRAIN_START_YEAR, TRAIN_END_YEAR, ROOT
 from .labels import build_labeled
 from .features import make_features, CATEGORICAL, NUMERIC
 
 TEST_FROM_YEAR = 2019
+FIGURES = ROOT / "figures"
+FIGURES.mkdir(exist_ok=True)
 
 
 def preprocessor():
@@ -49,10 +56,19 @@ def evaluate(name, y, p):
     return m
 
 
-def main():
+def save_figures(y, p, name):
+    RocCurveDisplay.from_predictions(y, p); plt.title(f"ROC - {name}"); plt.savefig(FIGURES / f"roc_{name}.png", dpi=150); plt.close()
+    PrecisionRecallDisplay.from_predictions(y, p); plt.title(f"PR - {name}"); plt.savefig(FIGURES / f"pr_{name}.png", dpi=150); plt.close()
+    frac, mean = calibration_curve(y, p, n_bins=10)
+    plt.plot(mean, frac, "o-"); plt.plot([0, 1], [0, 1], "--", c="gray")
+    plt.xlabel("Predicted risk"); plt.ylabel("Observed rate"); plt.title(f"Reliability - {name}")
+    plt.savefig(FIGURES / f"calibration_{name}.png", dpi=150); plt.close()
+
+
+def main(scheme: str = "strict"):
     term = pd.read_parquet(RAW / "terminated.parquet")
     comp = pd.read_parquet(RAW / "completed.parquet")
-    df = make_features(build_labeled(term, comp))
+    df = make_features(build_labeled(term, comp, scheme=scheme))
     df = df[df["start_year"].between(TRAIN_START_YEAR, TRAIN_END_YEAR)]
     df = df[df["study_type"] == "INTERVENTIONAL"]  # keep the problem well-defined; revisit
 
@@ -74,6 +90,7 @@ def main():
         pipe.fit(train[X_cols], train["label"])
         p = pipe.predict_proba(test[X_cols])[:, 1]
         results.append(evaluate(name, test["label"].to_numpy(), p))
+        save_figures(test["label"].to_numpy(), p, name)
         joblib.dump(pipe, MODELS / f"{name}.joblib")
     pd.DataFrame(results).to_csv(PROCESSED / "metrics.csv", index=False)
 
@@ -88,4 +105,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(sys.argv[1] if len(sys.argv) > 1 else "strict")

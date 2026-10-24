@@ -19,5 +19,5 @@ FIELDS = [
 ]
 
 # Training window from the brief (time-split, design-time features only)
-TRAIN_START_YEAR = 2010
+TRAIN_START_YEAR = 2008
 TRAIN_END_YEAR = 2021
