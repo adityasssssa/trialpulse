@@ -19,7 +19,7 @@ web/
 │       ├── util.js      formatting, labels, HTML escaping
 │       ├── leaflet.js   on-demand Leaflet loader (CDN, integrity hashes)
 │       ├── info.js      plain-language phase cards behind the 'i' buttons
-│       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js, map.js, faq.js
+│       └── pages/       home.js, trials.js, trial.js, about.js, ethics.js, map.js, faq.js, team.js
 ├── build.sh             src + ../exports → dist/
 ├── dev.sh               local server with a data copy (no build)
 ├── deploy-gh-pages.sh   publish dist/ to the gh-pages branch
@@ -37,6 +37,7 @@ Pages (all under `#/` so they work on any static host without rewrite rules):
 | `#/ethics` | Our promise, what is and is not predicted, data used, how we checked ourselves, a fairness table and chart computed live from `ma_trials_index.json`, expert review notes, known limits, what's next, and links |
 | `#/map` | Interactive map of Massachusetts cities: darker circles mean more high-risk trials (or a larger share, via a toggle), with hover numbers, click-through to the filtered list, and the same numbers as a table |
 | `#/faq` | Frequently asked questions, answered from `summary.json` |
+| `#/team` | About us: the team, the mission, and what the data and scores mean |
 
 Data loading: `ma_trials_index.json` (4 MB) powers the list, home and search. `ma_trials.json` (12.5 MB, with eligibility text) is fetched only when a trial page opens and is then cached for the session.
 

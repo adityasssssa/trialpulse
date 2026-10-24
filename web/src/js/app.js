@@ -13,6 +13,7 @@ const routes = [
   { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js'), nav: 'ethics' },
   { pattern: /^\/map$/, load: () => import('./pages/map.js'), nav: 'map' },
   { pattern: /^\/faq$/, load: () => import('./pages/faq.js'), nav: 'faq' },
+  { pattern: /^\/team$/, load: () => import('./pages/team.js'), nav: 'team' },
 ];
 
 let renderToken = 0;
