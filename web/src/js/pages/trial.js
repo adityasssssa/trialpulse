@@ -34,9 +34,10 @@ function reasonsHtml(reasons) {
   if (!reasons || !reasons.length) return '<p class="muted">No reasons available.</p>';
   return `<ol class="reasons">${reasons.map((r) => {
     const raises = r.direction === 'raises risk';
+    const same = !r.plain_english || r.plain_english === r.feature_label;
     return `<li class="reason">
       <span class="dir ${raises ? 'raises' : 'lowers'}">${raises ? '▲ raises risk' : '▼ lowers risk'}</span>
-      <span><span class="what">${esc(r.feature_label)}</span><br><span class="val">${esc(r.plain_english)}</span></span>
+      <span><span class="what">${esc(r.plain_english || r.feature_label)}</span>${same ? '' : `<br><span class="val">Model input: ${esc(r.feature_label)}</span>`}</span>
     </li>`;
   }).join('')}</ol>`;
 }
@@ -119,26 +120,26 @@ export async function render(main, { params }) {
       <div class="detail-grid">
         <div>
           <section class="card risk-card" aria-labelledby="risk-h">
-            <h2 id="risk-h">Estimated risk of stopping early for low enrollment</h2>
+            <h2 id="risk-h">Risk of stopping early for low enrollment</h2>
             <div class="headline">
               <span class="big">${fmtPct(t.risk)}<small>estimated risk</small></span>
               <span class="big">${fmtTimes(t.risk_vs_typical)}<small>the typical trial</small></span>
             </div>
             <p class="facts">
               <span>Rank <strong>${fmtInt(t.risk_rank)}</strong> of ${fmtInt(summary.n_trials_scored)}</span>
-              <span>Percentile <strong>${esc(t.risk_percentile)}</strong></span>
-              <span>Tier <strong>${esc(TIER_LABELS[t.risk_tier] || t.risk_tier)}</strong></span>
+              <span>In the top <strong>${Math.max(1, Math.ceil((t.risk_rank / summary.n_trials_scored) * 100))}%</strong> of ranked trials</span>
+              <span><strong>${esc(TIER_LABELS[t.risk_tier] || t.risk_tier)}</strong></span>
             </p>
-            <p class="small muted" style="margin:10px 0 0">An estimate from a model trained on past trials, not a certainty. Even among the riskiest 10% of trials, most are expected to finish normally. It says nothing about whether the treatment works.</p>
-            <h3 style="margin-top:20px">Why the model scored it this way</h3>
-            <p class="small muted">The three design features that moved this trial's score most. They explain the model, not the trial, and they are not advice to the study team.</p>
+            <p class="small muted" style="margin:10px 0 0">An estimate, not a certainty: most trials in every tier are expected to finish normally. It says nothing about whether the treatment works.</p>
+            <h3 style="margin-top:20px">Why this score</h3>
+            <p class="small muted">The three things about this trial's design that moved its score most. They explain the model, not the trial.</p>
             ${reasonsHtml(t.top_reasons)}
             ${sourceLine(summary)}
           </section>
 
           <section class="card eligibility" aria-labelledby="elig-h">
-            <h2 id="elig-h">Eligibility criteria</h2>
-            <p class="small muted">Shown exactly as registered on ClinicalTrials.gov. Eligibility is decided by the study team.</p>
+            <h2 id="elig-h">Who can join, as registered</h2>
+            <p class="small muted">Shown word for word from ClinicalTrials.gov. Eligibility is decided by the study team.</p>
             <div id="elig-wrap"><p class="loading" style="padding:12px 0">Loading eligibility text…</p></div>
             <div class="required-lines">
               <span>Eligibility is decided by the study team.</span>
@@ -169,13 +170,13 @@ export async function render(main, { params }) {
             <h2 id="sites-h">Massachusetts site${(t.ma_sites || []).length === 1 ? '' : 's'}</h2>
             ${sitesHtml(t.ma_sites)}
             <div class="map" id="map" role="img" aria-label="Map of Massachusetts sites for this trial"></div>
-            <p class="small muted" style="margin-top:8px">Pins mark the registry's coordinates for each site; several sites in the same city can share one pin.</p>
+            <p class="small muted" style="margin-top:8px">Sites in the same city can share one pin.</p>
             ${sourceLine(summary)}
           </section>
 
           <div class="ctgov-link">
             <a class="btn" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">Open ${esc(t.nct_id)} on ClinicalTrials.gov ${extIcon}</a>
-            <p class="small muted" style="margin-top:10px">Contacts, locations and current status are on the registry page. Eligibility is decided by the study team. Not medical advice.</p>
+            <p class="small muted" style="margin-top:10px">Contacts, all locations and current status are on the registry page.</p>
           </div>
         </div>
       </div>
