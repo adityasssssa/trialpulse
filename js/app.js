@@ -10,6 +10,8 @@ const routes = [
   { pattern: /^\/trial\/([A-Za-z0-9]+)$/, load: () => import('./pages/trial.js'), nav: 'trials' },
   { pattern: /^\/about$/, load: () => import('./pages/about.js'), nav: 'about' },
   { pattern: /^\/ethics$/, load: () => import('./pages/ethics.js'), nav: 'ethics' },
+  { pattern: /^\/map$/, load: () => import('./pages/map.js'), nav: 'map' },
+  { pattern: /^\/faq$/, load: () => import('./pages/faq.js'), nav: 'faq' },
 ];
 
 let renderToken = 0;
