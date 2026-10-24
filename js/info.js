@@ -1,8 +1,6 @@
 // Small "i" buttons that show a plain-language card on hover, focus or tap.
-// One floating card is shared by every button; content comes from PHASE_INFO
-// and trial counts are computed from the index export, never typed in.
-import { loadIndex } from './data.js?v=20261024231307';
-import { esc, fmtInt, phaseLabel, phaseKey } from './util.js?v=20261024231307';
+// One floating card is shared by every button; content comes from PHASE_INFO.
+import { esc, phaseLabel, phaseKey } from './util.js?v=20261024231516';
 
 const NOTE = 'Participant ranges are typical examples for drug trials, not strict rules. Trials of devices, procedures and behavioral programs can work differently.';
 
@@ -51,18 +49,6 @@ const PHASE_INFO = {
 
 const ORDER = ['EARLY_PHASE1', 'PHASE1', 'PHASE1+PHASE2', 'PHASE2', 'PHASE2+PHASE3', 'PHASE3', 'PHASE4', 'NA', 'UNSPECIFIED'];
 
-let counts = null;
-async function phaseCounts() {
-  if (counts) return counts;
-  const index = await loadIndex();
-  counts = new Map();
-  for (const t of index) {
-    const k = phaseKey(t.phases);
-    counts.set(k, (counts.get(k) || 0) + 1);
-  }
-  return counts;
-}
-
 // HTML for the phase label followed by its info button.
 export function phaseWithInfo(phases) {
   const key = phaseKey(phases);
@@ -73,20 +59,18 @@ export function infoButton(key, label) {
   return `<button type="button" class="info-btn" data-info="${esc(key)}" aria-label="${esc(label)}" aria-expanded="false">i</button>`;
 }
 
-function cardHtml(key, c) {
+function cardHtml(key) {
   if (key === 'ALL') {
     return `<p class="info-title">Trial phases, in plain words</p>
-      <ul class="info-list">${ORDER.map((k) => `<li><strong>${esc(phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')))}</strong>: ${esc(PHASE_INFO[k].tag)}${c.has(k) ? ` · ${fmtInt(c.get(k))} trials here` : ''}</li>`).join('')}</ul>
+      <ul class="info-list">${ORDER.map((k) => `<li><strong>${esc(phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')))}</strong>: ${esc(PHASE_INFO[k].tag)}</li>`).join('')}</ul>
       <p class="info-note">${esc(NOTE)}</p>`;
   }
   const info = PHASE_INFO[key];
   if (!info) return '';
-  const n = c.get(key);
   return `<p class="info-tag">${esc(info.tag)}</p>
     <p class="info-title">${esc(info.title)}</p>
     <p>${esc(info.body)}</p>
     ${info.people ? `<p class="info-people">${esc(info.people)}</p>` : ''}
-    ${n != null ? `<p class="info-count">${fmtInt(n)} of the ranked trials are in this phase.</p>` : ''}
     ${info.note ? `<p class="info-note">${esc(NOTE)}</p>` : ''}`;
 }
 
@@ -122,7 +106,7 @@ function position(btn) {
   c.style.top = `${top}px`;
 }
 
-async function show(btn) {
+function show(btn) {
   clearTimeout(hideTimer);
   const key = btn.dataset.info;
   const c = ensureCard();
@@ -130,13 +114,9 @@ async function show(btn) {
   current = btn;
   btn.setAttribute('aria-expanded', 'true');
   btn.setAttribute('aria-describedby', 'info-card');
-  c.innerHTML = cardHtml(key, counts || new Map());
+  c.innerHTML = cardHtml(key);
   c.hidden = false;
   position(btn);
-  if (!counts) {
-    await phaseCounts();
-    if (current === btn && !c.hidden) { c.innerHTML = cardHtml(key, counts); position(btn); }
-  }
 }
 
 function hide() {
@@ -152,7 +132,6 @@ function scheduleHide() {
 }
 
 export function initInfo() {
-  phaseCounts();
   document.addEventListener('mouseover', (e) => {
     const btn = e.target.closest && e.target.closest('.info-btn');
     if (btn) show(btn);

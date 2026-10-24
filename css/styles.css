@@ -450,7 +450,7 @@ details.faq .faq-a .source { margin-top: 4px; }
 .info-card p:last-child { margin-bottom: 0; }
 .info-card .info-tag { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 .info-card .info-title { font-weight: 700; font-size: 0.98rem; }
-.info-card .info-people, .info-card .info-count { font-weight: 600; }
+.info-card .info-people { font-weight: 600; }
 .info-card .info-note { color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 8px; }
 .info-card .info-list { margin: 0 0 6px; padding-left: 1.1em; }
 .info-card .info-list li { margin: 2px 0; }
