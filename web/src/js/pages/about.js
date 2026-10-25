@@ -7,28 +7,28 @@ const POP_LABELS = { all: 'All countries', us: 'US only' };
 
 // Every item from the "Known limits" section of HANDOFF.md.
 const LIMITS = [
-  ['Labels come from free text.', '"Why stopped" is an optional, free-form registry field. A keyword rule classifies it, so some labels are wrong. A hand-check of 125 reasons (the rule was not tuned on them) found 90% of positives are true enrollment failures (45/50). "Other" was correct in 25/25 and "unknown" in 24/25. Reasons that mix low enrollment with another cause (for example funding) are excluded from training; about half of them (12/25) are true enrollment failures, so the model is conservative: it learns from clear-cut enrollment failures and leaves out some real ones.'],
-  ['Retrospective registrations are excluded.', 'Trials first registered more than 30 days after they started are dropped from training and testing: 38% of trials. A trial registered after it has run is almost always already finished, so it leaks the outcome. Removing this leak lowered test AUC from 0.791 to 0.763.'],
-  ['Observational studies are out of scope.', 'Only interventional trials are modelled and scored.'],
-  ['The model is national and applied to Massachusetts.', 'It is trained on trials from all countries. On held-out trials with a Massachusetts site it does slightly worse (AUC about 0.75), and that slice is small (about 1,700 test trials, under 100 positives).'],
-  ['Recruiting trials look different from the test set.', 'Recruiting Massachusetts trials differ from the test set: median 10 sites vs 1, about twice the eligibility text, 46% vs 28% industry sponsors, 10% vs 32% accepting healthy volunteers. Scores for these larger trials extrapolate beyond what most test trials look like, and site counts for recruiting trials can still grow, so treat scores as a ranking rather than exact probabilities.'],
-  ['Some trial types are weaker.', 'Accuracy is lower for mental-health trials (AUC about 0.63 on test trials in the MeSH "Mental Disorders" category).'],
-  ['Rare diseases cannot be evaluated.', 'The registry data has no reliable rare-disease marker. The keyword flag ("rare", "orphan") matches 17 of about 112,000 modelling trials, and the MeSH term "Rare Diseases" only 27. So we make no claim about rare-disease performance.'],
+  ['Labels come from free text.', '"Why stopped" is an optional, free-form registry field. A keyword rule classifies it, so some labels are wrong. A hand-check of 125 reasons (the rule was not tuned on them) found that 90% of positives (45 of 50) are true enrollment failures. "Other" was correct in 25 of 25 cases and "unknown" in 24 of 25. Reasons that mix low enrollment with another cause (for example, funding) are excluded from training; about half of them (12 of 25) are true enrollment failures, so the model is conservative: it learns from clear-cut enrollment failures and leaves out some real ones.'],
+  ['Retrospective registrations are excluded.', 'Trials first registered more than 30 days after they started are dropped from training and testing; they make up 38% of trials. A trial registered after it has run is almost always already finished, so it leaks the outcome. Removing this leak lowered the test AUC from 0.791 to 0.763.'],
+  ['Observational studies are out of scope.', 'Only interventional trials are modeled and scored.'],
+  ['The model is national and applied to Massachusetts.', 'It is trained on trials from all countries. On held-out trials with a Massachusetts site it does slightly worse (an AUC of about 0.75), and that slice is small (about 1,700 test trials and under 100 positives).'],
+  ['Recruiting trials look different from the test set.', 'Recruiting Massachusetts trials differ from the test set: a median of 10 sites versus 1, about twice as much eligibility text, 46% versus 28% industry sponsors, and 10% versus 32% accepting healthy volunteers. Scores for these larger trials extrapolate beyond what most test trials look like, and site counts for recruiting trials can still grow, so treat scores as a ranking rather than as exact probabilities.'],
+  ['Some trial types are weaker.', 'Accuracy is lower for mental-health trials (an AUC of about 0.63 on test trials in the MeSH "Mental Disorders" category).'],
+  ['Rare diseases cannot be evaluated.', 'The registry data has no reliable rare-disease marker. The keyword flag ("rare", "orphan") matches 17 of about 112,000 modeling trials, and the MeSH term "Rare Diseases" matches only 27. So we make no claim about rare-disease performance.'],
   ['Reporting differences.', '"Main site in the US" raises risk partly because US-regulated trials fill in the stop reason more consistently, so their low-enrollment stops are more often labeled. That is a reporting effect, not evidence that US sites recruit worse, and it is why site country is never shown as a per-trial reason.'],
-  ['The rare-disease feature is a keyword match', 'on condition names ("rare", "orphan"). "Syndrome" was removed because it flagged common conditions such as carpal tunnel syndrome. It is not a clinical rare-disease designation, so no trial is labeled "rare disease" because of it.'],
+  ['The rare-disease feature is a keyword match.', 'It matches condition names containing "rare" or "orphan". "Syndrome" was removed because it flagged common conditions such as carpal tunnel syndrome. It is not a clinical rare-disease designation, so no trial is labeled "rare disease" because of it.'],
   ['Survivorship.', 'Trials that were never registered are invisible to the data.'],
-  ['What the data cannot see:', 'recruitment through networks not listed as sites, stop reasons never entered, protocol quality and investigator track record.'],
+  ['What the data cannot see.', 'Recruitment through networks not listed as sites, stop reasons that were never entered, protocol quality and investigators\' track records.'],
   ['Scores are probabilities, not verdicts.', 'Even among the riskiest 10%, most trials are expected to finish normally.'],
-  ['About 15–20% of trials have no MeSH condition terms,', 'so the condition category can be empty and the category filter cannot find them.'],
+  ['Some trials have no condition category.', 'About 15–20% of trials have no MeSH condition terms, so the condition category can be empty and the category filter cannot find them.'],
 ];
 
 const FIGURES = [
-  ['roc.png', 'ROC curves', 'Both models on the 2019–2021 test set, AUC in the legend.'],
+  ['roc.png', 'ROC curves', 'Both models on the 2019–2021 test set, with the AUC in the legend.'],
   ['pr.png', 'Precision–recall curves', 'Both models; the dashed line is the base rate.'],
-  ['calibration_ma.png', 'Calibration on Massachusetts test trials', 'Predicted vs observed risk. Points near the diagonal mean the estimated percentages are about right.'],
-  ['shap_top10.png', 'Top 10 global drivers', 'Plain-English bar chart of mean |SHAP| for the default model.'],
-  ['shap_summary.png', 'SHAP summary (technical)', 'Beeswarm of per-trial SHAP values; numeric features standardized.'],
-  ['top20_ma_trials.png', 'Top 20 recruiting Massachusetts trials', 'The 20 highest estimated risks at the time of the data pull, as a table.'],
+  ['calibration_ma.png', 'Calibration on Massachusetts test trials', 'Predicted versus observed risk. Points near the diagonal mean the estimated percentages are about right.'],
+  ['shap_top10.png', 'Top 10 global drivers', 'A plain-English bar chart of the mean absolute SHAP value for the default model.'],
+  ['shap_summary.png', 'SHAP summary (technical)', 'A beeswarm plot of per-trial SHAP values, with numeric features standardized.'],
+  ['top20_ma_trials.png', 'Top 20 recruiting Massachusetts trials', 'The 20 trials with the highest estimated risk at the time of the data pull, shown as a table.'],
 ];
 
 function metricsRows(rows, filter) {
@@ -101,8 +101,8 @@ export async function render(main) {
         <div class="card">
           <h2 id="short-h">In short</h2>
           <ul class="checks">
-            <li>We looked at about ${fmtInt(headline[0]?.n_train)} past trials and learned which design features went with stopping early for low enrollment.</li>
-            <li>We checked the model on ${fmtInt(headline[0]?.n_test)} later trials it had never seen. Among the 10% it rated riskiest, ${fmtPct(headline[0]?.precision_top10pct, 0)} did stop early for that reason, against ${fmtPct(headline[0]?.base_rate, 1)} of all trials.</li>
+            <li>We studied ${fmtInt(headline[0]?.n_train)} past trials and learned which design features went together with stopping early for low enrollment.</li>
+            <li>We checked the model on ${fmtInt(headline[0]?.n_test)} later trials it had never seen. Among the 10% it rated riskiest, ${fmtPct(headline[0]?.precision_top10pct, 0)} did stop early for that reason, compared with ${fmtPct(headline[0]?.base_rate, 1)} of all trials.</li>
             <li>Then we applied it to the ${fmtInt(summary.n_trials_scored)} trials recruiting in Massachusetts today, using only facts known when a trial is designed.</li>
             <li>It is a ranking tool, not a crystal ball. Most trials in every tier are expected to finish normally.</li>
           </ul>
@@ -114,15 +114,15 @@ export async function render(main) {
         <div class="grid-2">
           <div class="card">
             <h2 id="pred-h">What is predicted</h2>
-            <p><strong>One outcome only:</strong> a trial that is stopped (terminated or withdrawn) with a stated reason about low accrual, enrollment or recruitment. Not trial "success".</p>
+            <p><strong>One outcome only:</strong> a trial being stopped (terminated or withdrawn) with a stated reason involving low accrual, enrollment or recruitment. It does not predict trial "success".</p>
             <p>Each recruiting Massachusetts trial gets an estimated probability of this outcome, a rank among the ${fmtInt(summary.n_trials_scored)} scored trials, a tier (high = top 10%, elevated = next 20%, typical = the rest) and the three design features that moved its score most.</p>
           </div>
           <div class="card">
             <h2>What is not predicted</h2>
             <ul class="checks">
-              <li class="no">Not whether a treatment works, is safe, or whether the trial will "succeed" or "fail" scientifically.</li>
-              <li class="no">Not the quality of a trial or its investigators.</li>
-              <li class="no">Nothing about any person. The model ranks trials, never people, and never decides who is eligible. Eligibility is decided by the study team. Not medical advice.</li>
+              <li class="no">Whether a treatment works or is safe, or whether the trial will "succeed" or "fail" scientifically.</li>
+              <li class="no">The quality of a trial or its investigators.</li>
+              <li class="no">Anything about any person. The model ranks trials, never people, and never decides who is eligible. Eligibility is decided by the study team. Not medical advice.</li>
             </ul>
           </div>
         </div>
@@ -131,10 +131,10 @@ export async function render(main) {
       <section class="section prose" aria-labelledby="train-h">
         <h2 id="train-h">How it was trained and tested</h2>
         <p><strong>Data.</strong> Registered trials from the <a href="${esc(metrics.data_source_url)}" rel="noopener">ClinicalTrials.gov API v2</a>: ${fmtInt(pulls.terminated?.rows)} terminated or withdrawn trials, ${fmtInt(pulls.completed?.rows)} completed trials and ${fmtInt(pulls.recruiting_ma?.rows)} recruiting trials with a Massachusetts site, pulled on ${esc(summary.data_pulled)}. Only interventional trials are included, and trials registered more than 30 days after their start date are left out because their outcome is usually already known.</p>
-        <p><strong>Labels.</strong> The registry's free-text "why stopped" field. A keyword rule marks accrual, enrollment and recruitment reasons as positive; completed trials are negative ("strict" labels; "loose" labels also count trials stopped for other clear reasons as negatives). Trials with mixed reasons are left out of training.</p>
-        <p><strong>Features.</strong> Design-time only: phase, sponsor type, number of sites, eligibility rules, age range and similar. Nothing known only after a trial runs is used, so the model can be applied to trials that are recruiting today.</p>
+        <p><strong>Labels.</strong> Labels come from the registry's free-text "why stopped" field. A keyword rule marks reasons involving accrual, enrollment or recruitment as positive, and completed trials as negative ("strict" labels). "Loose" labels also count trials stopped for other clear reasons as negative. Trials with mixed reasons are left out of training.</p>
+        <p><strong>Features.</strong> Only design-time features are used: phase, sponsor type, number of sites, eligibility rules, age range and similar facts. Nothing that becomes known only after a trial runs is used, so the model can be applied to trials that are recruiting today.</p>
         <p><strong>Training and testing.</strong> The trials were split by start year, never at random. The model learned from ${fmtInt(headline[0]?.n_train)} trials that started ${metrics.train_years?.[0]}–${metrics.train_years?.[1]} and was tested on ${fmtInt(headline[0]?.n_test)} trials that started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}, so the test imitates predicting the future.</p>
-        <p><strong>Models.</strong> A LightGBM gradient-boosted classifier is the default and produces every score on this site. A logistic regression is kept as a baseline. Per-trial explanations use SHAP values.</p>
+        <p><strong>Models.</strong> A LightGBM gradient-boosted classifier is the default and produces every score on this site. A logistic regression model is kept as a baseline. Per-trial explanations use SHAP values.</p>
         ${sourceLine(summary)}
       </section>
 
@@ -142,11 +142,11 @@ export async function render(main) {
         <h2 id="metrics-h">How well it works</h2>
         <div class="kv" style="margin-bottom:16px">
           <div class="stat"><div class="value">${fmtNum(headline[0]?.auc_roc, 3)}</div><div class="label">AUC-ROC, full test set</div></div>
-          <div class="stat"><div class="value">${fmtPct(headline[0]?.precision_top10pct)}</div><div class="label">of the riskiest 10% did stop early for low enrollment (base rate ${fmtPct(headline[0]?.base_rate)}, ${fmtTimes(headline[0]?.precision_top10pct_vs_base)})</div></div>
+          <div class="stat"><div class="value">${fmtPct(headline[0]?.precision_top10pct)}</div><div class="label">of the riskiest 10% did stop early for low enrollment (${fmtTimes(headline[0]?.precision_top10pct_vs_base)} the base rate of ${fmtPct(headline[0]?.base_rate)})</div></div>
           <div class="stat"><div class="value">${fmtNum(headline[0]?.auc_pr, 3)}</div><div class="label">AUC-PR (${fmtTimes(headline[0]?.auc_pr_vs_base)} the base rate)</div></div>
           <div class="stat"><div class="value">${fmtNum(headline.find((r) => r.slice === 'ma')?.auc_roc, 3)}</div><div class="label">AUC-ROC on the Massachusetts slice (${fmtInt(headline.find((r) => r.slice === 'ma')?.n_test)} test trials)</div></div>
         </div>
-        <p class="metrics-note">Default model: ${esc(POP_LABELS[d.population] || d.population)} training population, ${esc(d.scheme)} labels, ${esc(MODEL_LABELS[d.model] || d.model)}. The highlighted row is the headline result. "Precision, top 10%" is ${esc(metrics.field_notes?.precision_top10pct || 'the share of the 10% highest-risk test trials that did stop early for low enrollment')}. Multiples in brackets are relative to the base rate. The Massachusetts slice is small (about 1,700 test trials, under 100 positives), so its numbers are less precise.</p>
+        <p class="metrics-note">The default model is trained on all countries with strict labels and uses LightGBM. The highlighted row is the headline result. "Precision, top 10%" is the share of the 10% highest-risk test trials that did stop early for low enrollment. Multiples in brackets are relative to the base rate. The Massachusetts slice is small (about 1,700 test trials and under 100 positives), so its numbers are less precise.</p>
         <div class="card" style="padding:0;overflow:hidden">
           ${metricsTable([...headline, ...baseline], { lead: (r) => r.model === d.model && r.slice === 'all' })}
         </div>
@@ -163,18 +163,18 @@ export async function render(main) {
         ${hc ? `
         <div class="kv" style="margin-bottom:12px">
           <div class="stat"><div class="value">${fmtPct(hc.positives_precision, 0)}</div><div class="label">of rule positives are true enrollment failures (${esc(hc.counts?.positives_precision)})</div></div>
-          <div class="stat"><div class="value">${fmtPct(hc.other_correct, 0)}</div><div class="label">of "other" reasons correctly not enrollment failures (${esc(hc.counts?.other_correct)})</div></div>
-          <div class="stat"><div class="value">${fmtPct(hc.unknown_correct, 0)}</div><div class="label">of "unknown" reasons correctly not enrollment failures (${esc(hc.counts?.unknown_correct)})</div></div>
-          <div class="stat"><div class="value">${fmtPct(hc.mixed_actually_accrual, 0)}</div><div class="label">of excluded "mixed" reasons are in fact enrollment failures (${esc(hc.counts?.mixed_actually_accrual)})</div></div>
+          <div class="stat"><div class="value">${fmtPct(hc.other_correct, 0)}</div><div class="label">of "other" reasons were correctly judged not to be enrollment failures (${esc(hc.counts?.other_correct)})</div></div>
+          <div class="stat"><div class="value">${fmtPct(hc.unknown_correct, 0)}</div><div class="label">of "unknown" reasons were correctly judged not to be enrollment failures (${esc(hc.counts?.unknown_correct)})</div></div>
+          <div class="stat"><div class="value">${fmtPct(hc.mixed_actually_accrual, 0)}</div><div class="label">of excluded "mixed" reasons were in fact enrollment failures (${esc(hc.counts?.mixed_actually_accrual)})</div></div>
         </div>
-        <p class="prose">${fmtInt(hc.n_checked)} "why stopped" reasons were hand-labeled by a ${esc(hc.reviewer)} (${esc(hc.note)}) and compared with the keyword rule. The rule is precise on clear enrollment failures and leaves out mixed reasons, so the positive class is conservative. Labels: <code>${esc(hc.labels_file)}</code> in the repository.</p>
+        <p class="prose">A ${esc(hc.reviewer)} hand-labeled ${fmtInt(hc.n_checked)} "why stopped" reasons (the rule was not tuned on this sample) and compared them with the keyword rule. The rule is precise on clear enrollment failures and leaves out mixed reasons, so the positive class is conservative. The labels are in <code>${esc(hc.labels_file)}</code> in the repository.</p>
         ` : '<p class="muted">Hand-check results are not available in this export.</p>'}
         ${sourceLine(summary)}
       </section>
 
       <section class="section" aria-labelledby="fi-h">
         <h2 id="fi-h">What drives the scores</h2>
-        <p class="prose">Global feature importance for the default model: ${esc(fi.measure)}. Higher means the feature moves scores more, in either direction.</p>
+        <p class="prose">Global feature importance for the default model, measured as the mean absolute SHAP value on the 2019–2021 test set, in log-odds of the predicted risk. A higher value means the feature moves scores more, in either direction.</p>
         <div class="card">
           ${importanceChart(fi)}
           <p class="small muted" style="margin:10px 0 0">* Site-country features, such as "Main site in the US" and "Site country: Egypt", mostly reflect how consistently trials in that country report why they stopped, not trial design. The model uses them, but they are never shown as a reason on a trial page.</p>
@@ -195,7 +195,7 @@ export async function render(main) {
       <section class="section" aria-labelledby="terms-h">
         <h2 id="terms-h">Words used on this page</h2>
         <dl class="facts terms">
-          <dt>AUC-ROC</dt><dd>How well the model separates trials that stopped early from those that did not. 0.5 is a coin flip, 1.0 is perfect.</dd>
+          <dt>AUC-ROC</dt><dd>How well the model separates trials that stopped early from those that did not. A score of 0.5 is a coin flip; 1.0 is perfect.</dd>
           <dt>Base rate</dt><dd>The share of all test trials that stopped early for low enrollment, before any model.</dd>
           <dt>Precision, top 10%</dt><dd>Of the trials the model rated riskiest, the share that really did stop early for low enrollment.</dd>
           <dt>AUC-PR</dt><dd>A score that rewards finding the rare early-stopping trials without many false alarms. Compare it with the base rate.</dd>

@@ -95,7 +95,7 @@ export async function render(main) {
         <h2 id="data-h">Data we use</h2>
         <ul class="checks">
           <li>Public ClinicalTrials.gov registrations only. No patient records, ever.</li>
-          <li>Only facts known when a trial starts: phase, sponsor type, number of sites, eligibility rules. Never results or actual enrollment.</li>
+          <li>Only facts known when a trial starts, such as phase, sponsor type, number of sites and eligibility rules. Never results or actual enrollment.</li>
           <li>Trained on trials that started ${metrics.train_years?.[0]}–${metrics.train_years?.[1]} and tested on trials that started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}.</li>
         </ul>
         ${src}
@@ -104,16 +104,16 @@ export async function render(main) {
       <section class="section prose" aria-labelledby="check-h">
         <h2 id="check-h">How we checked ourselves</h2>
         <ul class="checks">
-          <li><strong>We hand-checked ${fmtInt(hc?.n_checked)} labels.</strong> ${fmtPct(hc?.positives_precision, 0)} of flagged trials (${esc(hc?.counts?.positives_precision)}) were confirmed as real low-enrollment stops. <a href="${REPO}/blob/main/docs/handcheck_labels.csv" rel="noopener">See the hand-check labels</a>.</li>
+          <li><strong>We hand-checked ${fmtInt(hc?.n_checked)} labels.</strong> ${fmtPct(hc?.positives_precision, 0)} of flagged trials (${esc((hc?.counts?.positives_precision || '').replace('/', ' of '))}) were confirmed as real low-enrollment stops. <a href="${REPO}/blob/main/docs/handcheck_labels.csv" rel="noopener">See the hand-check labels</a>.</li>
           <li><strong>We found a data leak and removed it.</strong> Trials registered after they had already run were giving the outcome away. Removing them dropped accuracy from 0.791 to ${fmtNum(main_?.auc_roc, 3)} AUC, and we report the lower number.</li>
-          <li><strong>A simple model does nearly as well.</strong> Logistic regression scores ${fmtNum(logreg?.auc_roc, 3)} AUC against ${fmtNum(main_?.auc_roc, 3)} for our main model (LightGBM). We say so openly.</li>
+          <li><strong>A simple model does nearly as well.</strong> Logistic regression scores an AUC of ${fmtNum(logreg?.auc_roc, 3)}, against ${fmtNum(main_?.auc_roc, 3)} for our main model (LightGBM). We say so openly.</li>
         </ul>
         ${sourceLine(summary, `Test trials started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}.`)}
       </section>
 
       <section class="section" aria-labelledby="fair-h">
         <h2 id="fair-h">Fairness: who could be affected</h2>
-        <p class="prose">High-risk trials are mostly small academic studies. A high score should bring more outreach help, never a reason to defund or close a trial.</p>
+        <p class="prose">High-risk trials are mostly small academic studies. A high score should bring more outreach help; it is never a reason to defund or close a trial.</p>
         <div class="card">
           ${fairnessChart(fair)}
           <p class="small muted chart-key"><span class="key key-all">All trials</span> <span class="key key-high">High-risk tier</span></p>
@@ -128,7 +128,7 @@ export async function render(main) {
         <p class="muted">From the Ethics Genius Bar review.</p>
         <ul class="checks">
           <li><strong>Demographics.</strong> Our data does not show who enrolls (race, ethnicity, or the age of actual participants), so we cannot tell whether a trial reaches diverse groups.</li>
-          <li><strong>Socio-economic factors.</strong> Travel, cost, time off work, insurance and language barriers all affect enrollment, but none of them are in our data.</li>
+          <li><strong>Socio-economic factors.</strong> Travel, cost, time off work, insurance and language barriers all affect enrollment, but none of these appear in our data.</li>
           <li><strong>Objectivity.</strong> We report weak results as well as strong ones, and treat scores as patterns, not proof.</li>
         </ul>
       </section>
@@ -137,13 +137,13 @@ export async function render(main) {
         <h2 id="limits-h">Known limits</h2>
         <ul class="limits">
           <li>Labels come from free-text "why stopped" reasons, so some are wrong.</li>
-          <li>Lower accuracy on mental-health trials (about 0.63 AUC).</li>
-          <li>Rare-disease performance cannot be evaluated: too few trials.</li>
+          <li>Accuracy is lower on mental-health trials (an AUC of about 0.63).</li>
+          <li>Rare-disease performance cannot be evaluated because there are too few such trials.</li>
           <li>"Main site in the US" raises scores partly because US trials report stop reasons more consistently. We never show country as a reason for a score.</li>
           <li>The Massachusetts test slice is small (${fmtInt(ma?.n_test)} trials).</li>
-          <li>Recruiting trials are larger than most past trials, so treat scores as a ranking, not exact probabilities.</li>
+          <li>Recruiting trials are larger than most past trials, so treat scores as a ranking, not as exact probabilities.</li>
           <li>Trials that were never registered are invisible.</li>
-          <li>The model cannot see recruitment networks, protocol quality or investigator track record.</li>
+          <li>The model cannot see recruitment networks, protocol quality or investigators' track records.</li>
         </ul>
         ${src}
         <p class="small"><a href="#/about">The full list of limits, with the numbers behind each one, is on the About page.</a></p>
