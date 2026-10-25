@@ -1,5 +1,5 @@
-import { loadSummary, loadMetrics, loadIndex } from '../data.js?v=20261025142235';
-import { esc, fmtInt, fmtPct, fmtNum, sourceLine } from '../util.js?v=20261025142235';
+import { loadSummary, loadMetrics, loadIndex } from '../data.js?v=20261025142715';
+import { esc, fmtInt, fmtPct, fmtNum, sourceLine } from '../util.js?v=20261025142715';
 
 const REPO = 'https://github.com/adityasssssa/trialpulse';
 

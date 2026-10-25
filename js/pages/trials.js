@@ -1,10 +1,10 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261025142235';
-import { softNavigate } from '../app.js?v=20261025142235';
+import { loadIndex, loadSummary } from '../data.js?v=20261025142715';
+import { softNavigate } from '../app.js?v=20261025142715';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, phaseKey, sponsorLabel,
   norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER, normalizeCity, trialCities, startYear,
-} from '../util.js?v=20261025142235';
-import { phaseWithInfo, infoButton } from '../info.js?v=20261025142235';
+} from '../util.js?v=20261025142715';
+import { phaseWithInfo, infoButton } from '../info.js?v=20261025142715';
 
 const PAGE = 50;
 const FILTER_KEYS = ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility', 'from', 'to'];

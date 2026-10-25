@@ -1,9 +1,9 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261025142235';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025142235';
-import { softNavigate } from '../app.js?v=20261025142235';
-import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery, normalizeCity, startYear } from '../util.js?v=20261025142235';
-import { prepareIndex, applyFilters as applyListFilters } from './trials.js?v=20261025142235';
-import { infoButton } from '../info.js?v=20261025142235';
+import { loadIndex, loadSummary } from '../data.js?v=20261025142715';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025142715';
+import { softNavigate } from '../app.js?v=20261025142715';
+import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery, normalizeCity, startYear } from '../util.js?v=20261025142715';
+import { prepareIndex, applyFilters as applyListFilters } from './trials.js?v=20261025142715';
+import { infoButton } from '../info.js?v=20261025142715';
 
 // Massachusetts bounding box (south-west, north-east) with a little padding.
 const MA_BOUNDS = [[41.15, -73.65], [43.0, -69.8]];
