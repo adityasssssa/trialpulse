@@ -1,11 +1,11 @@
-import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261025004428';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025004428';
-import { phaseWithInfo } from '../info.js?v=20261025004428';
-import { fetchLiveStatus, statusLabel } from '../registry.js?v=20261025004428';
+import { findInIndex, loadEligibility, loadSummary } from '../data.js?v=20261025010135';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025010135';
+import { fetchLiveStatus, statusLabel } from '../registry.js?v=20261025010135';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
-  ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
-} from '../util.js?v=20261025004428';
+  ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel, normalizeCity, cityWasFixed,
+} from '../util.js?v=20261025010135';
+import { infoButton, phaseWithInfo } from '../info.js?v=20261025010135';
 
 const extIcon = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -25,7 +25,7 @@ function reasonsHtml(reasons) {
 function sitesHtml(sites) {
   if (!sites || !sites.length) return '<p class="muted">No Massachusetts sites listed.</p>';
   return `<ul class="site-list">${sites.map((s) => `<li>
-    ${esc(s.facility || 'Facility name not listed')}${s.city ? ` <span class="city">· ${esc(s.city)}, MA</span>` : ''}
+    ${esc(s.facility || 'Facility name not listed')}${s.city ? ` <span class="city">· ${esc(normalizeCity(s.city))}, MA${cityWasFixed(s.city) ? ` <span class="muted small">(registered as “${esc(s.city)}”)</span>` : ''}</span>` : ''}
     ${s.lat == null || s.lon == null ? ' <span class="muted small">(no map coordinates in the registry)</span>' : ''}
   </li>`).join('')}</ul>`;
 }
@@ -144,19 +144,39 @@ export async function render(main, { params }) {
           <section class="card risk-card" aria-labelledby="risk-h">
             <h2 id="risk-h">Risk of stopping early for low enrollment</h2>
             <div class="headline">
-              <span class="big">${fmtPct(t.risk)}<small>estimated risk</small></span>
-              <span class="big">${fmtTimes(t.risk_vs_typical)}<small>the typical trial</small></span>
+              <span class="big">${fmtTimes(t.risk_vs_typical)}<small>the typical trial's estimated risk</small></span>
+              <span class="big">#${fmtInt(t.risk_rank)}<small>of ${fmtInt(summary.n_trials_scored)} ranked trials</small></span>
             </div>
             <p class="facts">
-              <span>Rank <strong>${fmtInt(t.risk_rank)}</strong> of ${fmtInt(summary.n_trials_scored)}</span>
-              <span>In the top <strong>${Math.max(1, Math.ceil((t.risk_rank / summary.n_trials_scored) * 100))}%</strong> of ranked trials</span>
-              <span><strong>${esc(TIER_LABELS[t.risk_tier] || t.risk_tier)}</strong></span>
+              <span><strong>${esc(TIER_LABELS[t.risk_tier] || t.risk_tier)}</strong> tier ${infoButton('TIER', 'What the risk tiers and “× typical” mean')}</span>
+              <span>Top <strong>${Math.max(1, Math.ceil((t.risk_rank / summary.n_trials_scored) * 100))}%</strong> of the ranking</span>
+              <span>Model estimate <strong>${fmtPct(t.risk)}</strong></span>
             </p>
-            <p class="small muted" style="margin:10px 0 0">This is an estimate, not a certainty: in every tier, most trials are expected to finish normally. It says nothing about whether the treatment works.</p>
+            <p class="small muted" style="margin:10px 0 0">Use the tier and rank as a priority order. The percentage is the model's estimated probability that this trial is stopped with low enrollment given as the reason; it was checked on past trials, not on today's recruiting trials, so treat it as approximate. The score says nothing about whether the treatment works or is safe.</p>
             <h3 style="margin-top:20px">Why this score</h3>
-            <p class="small muted">The three design features that moved this trial's score most. They describe the model's reasoning, not the trial's quality.</p>
+            <p class="small muted">The three model inputs that moved this trial's score most (SHAP values). They describe associations the model learned from past trials, not causes, and they do not say what would fix enrollment. The model also uses the site's country, which is never listed here but still affects the score; see the About page.</p>
             ${reasonsHtml(t.top_reasons)}
-            ${sourceLine(summary)}
+            ${sourceLine(summary, 'Scores were computed from this snapshot.')}
+          </section>
+
+          <section class="card next-card" aria-labelledby="next-h">
+            <h2 id="next-h">What to do next</h2>
+            <p class="small muted">The score only flags a trial for human review. A coordinator decides what, if anything, to do.</p>
+            <h3>Questions for the review</h3>
+            <ul class="checks">
+              <li>Is the trial still open to new participants? Check the registry status above and confirm with the site.</li>
+              <li>How is enrollment going against the plan, and is there a target date for closing accrual?</li>
+              <li>Are the eligibility criteria narrower than the local patient population, and does the study team know?</li>
+              <li>Which clinics, practices or community groups see the people this trial needs, and have they been told it exists?</li>
+            </ul>
+            <h3>Outreach options that recruitment offices commonly use</h3>
+            <ul class="checks">
+              <li>Brief referring clinicians and tumor boards or specialty clinics about the open trial.</li>
+              <li>Share plain-language study information with patient advocacy groups and community health partners.</li>
+              <li>Add the trial to institutional trial listings and screening workflows.</li>
+              <li>Ask the study team whether additional Massachusetts sites or remote visits are possible.</li>
+            </ul>
+            <p class="small muted">These are general options, not recommendations for this trial. The reasons shown above describe what the model learned, not which action would work. Eligibility is decided by the study team.</p>
           </section>
 
           <section class="card eligibility" aria-labelledby="elig-h">
@@ -217,27 +237,25 @@ export async function render(main, { params }) {
     if (!live.isConnected) return;
     const changed = r.status && r.status !== 'RECRUITING';
     live.innerHTML = `
-      <p class="live-line"><span class="live-badge ${changed ? 'changed' : 'ok'}">${esc(statusLabel(r.status))}</span>${changed ? ' <span class="small">Status has changed since our data pull on ' + esc(summary.data_pulled) + '.</span>' : ''}</p>
+      <p class="live-line"><span class="live-badge ${changed ? 'changed' : 'ok'}">${esc(statusLabel(r.status))}</span></p>
+      ${changed ? `<p class="small conflict"><strong>Differs from the scored snapshot.</strong> On ${esc(summary.data_pulled)} the registry listed this trial as recruiting, which is why it was scored. Today it is listed as “${esc(statusLabel(r.status))}”. The score was not recomputed.</p>` : `<p class="small muted">Matches the snapshot of ${esc(summary.data_pulled)}, which listed this trial as recruiting.</p>`}
       <dl class="facts small-facts">
         <dt>Last registry update</dt><dd>${esc(fmtDate(r.lastUpdate))}</dd>
         <dt>Status verified</dt><dd>${esc(fmtDate(r.verified))}</dd>
         <dt>Primary completion</dt><dd>${esc(fmtDate(r.primaryCompletion))}</dd>
         ${r.whyStopped ? `<dt>Why stopped</dt><dd>${esc(r.whyStopped)}</dd>` : ''}
       </dl>
-      <p class="source">Source: ClinicalTrials.gov API v2, checked ${esc(r.checked)}. Rechecked once a day.</p>`;
+      <p class="source">Source: ClinicalTrials.gov API v2, live check ${esc(r.checked)} (rechecked once a day). Score snapshot: ${esc(summary.data_pulled)}.</p>`;
   }).catch(() => {
     if (live.isConnected) live.innerHTML = `<p class="small muted">Live status unavailable right now. <a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">Check on ClinicalTrials.gov</a>.</p>`;
   });
 
-  // Eligibility text lives only in the full export; fetch it now and cache it.
+  // Eligibility text comes from a small per-trial file (with the full export as fallback).
   const wrap = main.querySelector('#elig-wrap');
-  if (!isFullLoaded()) {
-    wrap.querySelector('.loading').textContent = 'Loading eligibility text (this is the full 12 MB export, fetched once)…';
-  }
   try {
-    const full = await loadFullTrial(nctId);
+    const elig = await loadEligibility(nctId);
     if (!wrap.isConnected) return;
-    wrap.innerHTML = eligibilityHtml(full ? full.eligibility_criteria : null);
+    wrap.innerHTML = eligibilityHtml(elig.text);
     const pre = wrap.querySelector('#elig-text');
     const btn = wrap.querySelector('#elig-toggle');
     if (pre && btn) {

@@ -1,6 +1,6 @@
 // Small "i" buttons that show a plain-language card on hover, focus or tap.
 // One floating card is shared by every button; content comes from PHASE_INFO.
-import { esc, phaseLabel, phaseKey } from './util.js?v=20261025004428';
+import { esc, phaseLabel, phaseKey } from './util.js?v=20261025010135';
 
 const NOTE = 'Participant ranges are typical examples for drug trials, not strict rules. Trials of devices, procedures and behavioral programs can work differently.';
 
@@ -60,6 +60,14 @@ export function infoButton(key, label) {
 }
 
 function cardHtml(key) {
+  if (key === 'TIER') {
+    return `<p class="info-tag">Relative ranking</p>
+      <p class="info-title">Risk tiers and “× typical”</p>
+      <p>Every recruiting Massachusetts trial gets an estimated risk of stopping early for low enrollment. Trials are then ranked. <strong>High risk</strong> is the top 10% of that ranking, <strong>elevated</strong> the next 20%, <strong>typical</strong> the rest.</p>
+      <p>A tier is a position in the ranking, not a judgment about the treatment, its safety or the study team.</p>
+      <p>“× typical” is the trial's estimated risk divided by the median estimated risk across all 2,618 scored trials (4.1%). “2× typical” means about twice the median.</p>
+      <p class="info-note">Percentages are model estimates checked on past trials. For today's trials, use them as an order of priority rather than as exact probabilities.</p>`;
+  }
   if (key === 'ALL') {
     return `<p class="info-title">Trial phases, in plain words</p>
       <ul class="info-list">${ORDER.map((k) => `<li><strong>${esc(phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')))}</strong>: ${esc(PHASE_INFO[k].tag)}</li>`).join('')}</ul>

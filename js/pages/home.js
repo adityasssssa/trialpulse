@@ -1,6 +1,6 @@
-import { loadSummary, loadIndex } from '../data.js?v=20261025004428';
-import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261025004428';
-import { phaseWithInfo } from '../info.js?v=20261025004428';
+import { loadSummary, loadIndex } from '../data.js?v=20261025010135';
+import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261025010135';
+import { phaseWithInfo } from '../info.js?v=20261025010135';
 
 const arrow = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -14,7 +14,7 @@ export async function render(main) {
     <section class="hero">
       <p class="eyebrow">Recruiting trials in Massachusetts</p>
       <h1>Many clinical trials close early because they can't enroll enough patients.</h1>
-      <p class="lede">TrialPulse ranks every trial now recruiting in Massachusetts by how likely it is to run into that problem. Recruitment teams can see at a glance which trials may need outreach help first.</p>
+      <p class="lede">TrialPulse ranks every trial now recruiting in Massachusetts by its estimated risk of stopping early for low enrollment. A hospital recruitment coordinator with limited outreach capacity can see which trials to review first.</p>
       <div class="actions">
         <a class="btn" href="#/trials">See the ranked trials ${arrow}</a>
         <a class="btn btn-secondary" href="#/about">How it works</a>
@@ -36,16 +36,28 @@ export async function render(main) {
         </div>
         <div class="stat">
           <div class="value">${fmtPct(summary.top_decile_precision, 0)}</div>
-          <div class="label">of the highest-risk trials did stop early</div>
-          <div class="detail">Among the 10% of past trials the model rated riskiest, ${fmtPct(summary.top_decile_precision, 0)} later stopped for low enrollment. Across all ${fmtInt(summary.n_test)} test trials, only ${fmtPct(summary.base_rate)} did.</div>
+          <div class="label">of the highest-risk tenth did stop early for low enrollment</div>
+          <div class="detail">On ${fmtInt(summary.n_test)} past trials the model had never seen. Across all of them, ${fmtPct(summary.base_rate)} stopped for that reason, so the top tenth was ${fmtTimes(summary.top_decile_precision_vs_base)} as likely.</div>
         </div>
         <div class="stat">
           <div class="value">${Number(summary.auc_roc).toFixed(2)}</div>
-          <div class="label">accuracy score (AUC)</div>
-          <div class="detail">On a scale where 0.5 is a coin flip and 1.0 is perfect.</div>
+          <div class="label">ranking score (ROC-AUC)</div>
+          <div class="detail">The chance the model ranks a trial that stopped for low enrollment above one that did not. 0.5 is random; 1.0 is perfect ranking.</div>
         </div>
       </div>
-      ${sourceLine(summary)}
+      ${sourceLine(summary, 'Test set: trials that started 2019–2021, scored by a model trained on 2008–2018 trials.')}
+    </section>
+
+    <section class="section" aria-labelledby="journey-h">
+      <div class="section-head"><h2 id="journey-h">How a recruitment coordinator uses it</h2></div>
+      <ol class="journey">
+        <li><a href="#/trials?facility=Massachusetts%20General%20Hospital"><strong>Pick your facility or city</strong></a><span>Filter the ranked list to the trials your office supports.</span></li>
+        <li><a href="#/trials?tier=high"><strong>Start at the top of the ranking</strong></a><span>High-risk trials are the ones to review first; the tier is a priority order, not a verdict.</span></li>
+        <li><a href="#/trial/${esc(top[0]?.nct_id || '')}"><strong>Read why each trial scored as it did</strong></a><span>Three model inputs per trial, in plain words, plus the registered eligibility text.</span></li>
+        <li><a href="#/trial/${esc(top[0]?.nct_id || '')}"><strong>Check the registry today</strong></a><span>Each trial page shows the live ClinicalTrials.gov status beside the scored snapshot.</span></li>
+        <li><a href="#/trials?tier=high"><strong>Download the review list</strong></a><span>Export the filtered trials as a CSV for your team meeting.</span></li>
+      </ol>
+      <p class="small muted">The score flags a trial for human review. It does not predict which trials outreach would help most; that is a decision for the people who know the trial and the community.</p>
     </section>
 
     <section class="section" aria-labelledby="what-h">
@@ -63,7 +75,7 @@ export async function render(main) {
           <ul class="checks">
             <li class="no">It does not say whether a treatment works or whether a trial is good science.</li>
             <li class="no">It does not look at any person. Only the study team decides who is eligible.</li>
-            <li class="no">It is not a certainty. Even among high-risk trials, most are expected to finish normally.</li>
+            <li class="no">It is not a certainty. On past trials, most of those in the high-risk tier were not stopped for low enrollment.</li>
           </ul>
         </div>
       </div>
@@ -71,7 +83,7 @@ export async function render(main) {
 
     <section class="section" aria-labelledby="tiers-h">
       <div class="section-head"><h2 id="tiers-h">How to read a score</h2></div>
-      <p class="lede-small">Each trial gets an estimated risk, shown as a percentage and as a multiple of the typical trial. The typical trial's risk is ${fmtPct(summary.median_risk)}, so "2× typical" means about twice that.</p>
+      <p class="lede-small">Each trial gets an estimated risk and a place in the ranking. The ranking is what to act on. "× typical" is the trial's estimate divided by the median estimate across all ${fmtInt(summary.n_trials_scored)} scored trials (${fmtPct(summary.median_risk)}), so "2× typical" means about twice the median.</p>
       <div class="tier-legend">
         <div class="card">
           ${tierBadge('high')}
@@ -112,6 +124,19 @@ export async function render(main) {
         }).join('')}
       </ol>
       ${sourceLine(summary)}
+    </section>
+
+    <section class="section" aria-labelledby="beyond-h">
+      <div class="card">
+        <h2 id="beyond-h">What this adds to a ClinicalTrials.gov search</h2>
+        <ul class="checks">
+          <li>A ranking of every recruiting Massachusetts trial by modeled enrollment risk, with the three inputs behind each score. The registry has no such ranking.</li>
+          <li>Filters by Massachusetts city and facility, condition category, phase, sponsor type and start year, with shareable links.</li>
+          <li>A review list you can download as a CSV, and a map of where the high-risk trials have sites.</li>
+          <li>The registry's own status, checked live, beside each score.</li>
+        </ul>
+        <p class="small muted">The registry remains the source of truth for every trial; TrialPulse links to it from every trial page.</p>
+      </div>
     </section>
 
     <section class="section">

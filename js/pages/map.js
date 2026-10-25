@@ -1,14 +1,14 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261025004428';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025004428';
-import { softNavigate } from '../app.js?v=20261025004428';
-import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery } from '../util.js?v=20261025004428';
+import { loadIndex, loadSummary } from '../data.js?v=20261025010135';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025010135';
+import { softNavigate } from '../app.js?v=20261025010135';
+import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery, normalizeCity, startYear } from '../util.js?v=20261025010135';
+import { prepareIndex, applyFilters as applyListFilters } from './trials.js?v=20261025010135';
+import { infoButton } from '../info.js?v=20261025010135';
 
 // Massachusetts bounding box (south-west, north-east) with a little padding.
 const MA_BOUNDS = [[41.15, -73.65], [43.0, -69.8]];
 
-// Display-only fixes for exact registry misspellings. exports/ is never edited.
-const CITY_FIXES = { Worester: 'Worcester', Worchester: 'Worcester', Sommerville: 'Somerville' };
-const cityName = (c) => CITY_FIXES[c] || c;
+const cityName = normalizeCity;
 // A percentage is only shown for cities with at least this many matching trials.
 const MIN_N = 10;
 const SMALL_COLOR = '#c9c4b8';
@@ -38,20 +38,12 @@ const METRICS = {
 };
 
 const binFor = (bins, v) => bins.find((b) => v >= b.min && v <= b.max) || bins[bins.length - 1];
-const year = (t) => (t.start_date ? Number(t.start_date.slice(0, 4)) : null);
+const year = startYear;
 
+// The map uses exactly the same filter logic as the ranked list, so every
+// number on the map matches the list it links to.
 function applyFilters(index, f) {
-  const from = f.from ? Number(f.from) : null;
-  const to = f.to ? Number(f.to) : null;
-  return index.filter((t) => {
-    if (f.phase && phaseKey(t.phases) !== f.phase) return false;
-    if (f.category && !(t.condition_categories || []).includes(f.category)) return false;
-    if (f.sponsor && (t.sponsor_class || 'UNSPECIFIED') !== f.sponsor) return false;
-    const y = year(t);
-    if (from != null && (y == null || y < from)) return false;
-    if (to != null && (y == null || y > to)) return false;
-    return true;
-  });
+  return applyListFilters(prepareIndex(index), { phase: f.phase, category: f.category, sponsor: f.sponsor, from: f.from, to: f.to }).map((r) => r.t);
 }
 
 // One row per city for the current trial set.
@@ -136,14 +128,14 @@ export async function render(main, { query }) {
   const located = rows.filter((r) => r.lat != null);
   const nHigh = trials.filter((t) => t.risk_tier === 'high').length;
   const anyFilter = ['phase', 'category', 'sponsor', 'from', 'to'].some((k) => f[k]);
-  const listQuery = buildQuery({ phase: f.phase, category: f.category, sponsor: f.sponsor });
+  const listFilters = { phase: f.phase, category: f.category, sponsor: f.sponsor, from: f.from, to: f.to };
 
   if (!main.querySelector('#map-page')) {
     main.innerHTML = `
       <div id="map-page" class="map-page">
         <div class="page-head">
-          <h1>Where the high-risk trials are</h1>
-          <p>Each circle is a Massachusetts city with at least one recruiting trial site. Circle size shows how many of the selected trials have a site there, and a darker color shows a larger high-risk share. Hover over or tap a circle for its numbers, and click through to that city's ranked list.</p>
+          <h1>Enrollment-risk map of Massachusetts</h1>
+          <p>Where recruiting trials with a high estimated risk of stopping early for low enrollment are located. Each circle is a city with at least one trial site: size shows how many of the selected trials have a site there, and a darker color shows a larger share in the high-risk tier (a relative ranking, not a safety judgment). Every number is also in the table below, and each link opens exactly the trials counted. ${infoButton('TIER', 'What the risk tiers mean')}</p>
         </div>
         <form class="filters map-filters" id="map-filters" aria-label="Filter the map">
           <div class="map-toggle-row"><button type="button" class="btn btn-secondary filters-toggle" id="map-toggle" aria-expanded="false" aria-controls="map-filters-grid">Filters</button></div>
@@ -174,7 +166,7 @@ export async function render(main, { query }) {
         </section>
         <section class="section" aria-labelledby="table-h">
           <h2 id="table-h">By city</h2>
-          <p class="small muted">Percentages are shown for cities with at least ${MIN_N} matching trials. Registry misspellings of Worcester and Somerville are grouped with the correct city.</p>
+          <p class="small muted">Percentages are shown for cities with at least ${MIN_N} matching trials. Registry misspellings of Worcester and Somerville are grouped with the correct city everywhere on the site; the registered spelling is kept on each trial page and in the CSV export.</p>
           <div class="card" style="padding:0;overflow:hidden" id="city-table"></div>
           ${sourceLine(summary)}
         </section>
@@ -210,7 +202,7 @@ export async function render(main, { query }) {
     : `All ${fmtInt(index.length)} trials · ${fmtInt(nHigh)} high risk · ${fmtInt(rows.length)} cities`;
   const M = METRICS[metric];
   const maxTotalAll = Math.max(...rows.map((r) => r.total), 1);
-  const radiusOf = (total) => 6 + 24 * Math.sqrt(total / maxTotalAll);
+  const radiusOf = (total) => 5 + 19 * Math.sqrt(total / maxTotalAll);
   const sizeSamples = [...new Set([10, 100, 1000, maxTotalAll].filter((n) => n <= maxTotalAll && n >= 1))].sort((a, b) => a - b).slice(-3);
   const sizeLegend = `<div class="size-legend" aria-label="Circle size scale"><span class="legend-title">Circle size: matching trials</span>
     <svg viewBox="0 0 ${sizeSamples.length * 90} 72" width="${sizeSamples.length * 90}" height="72" aria-hidden="true">${sizeSamples.map((n, i) => `<circle cx="${45 + i * 90}" cy="34" r="${radiusOf(n).toFixed(1)}" fill="none" stroke="currentColor" stroke-width="1.5"></circle><text x="${45 + i * 90}" y="68" text-anchor="middle" font-size="11">${fmtInt(n)}</text>`).join('')}</svg></div>`;
@@ -247,7 +239,7 @@ export async function render(main, { query }) {
     <tbody>${sorted.map((r) => `<tr>
       <th scope="row">${esc(r.city)}${r.lat == null ? ' <span class="muted small">(not on map)</span>' : ''}</th>
       <td class="num">${fmtInt(r.total)}</td><td class="num">${fmtInt(r.high)}</td><td class="num">${r.total < MIN_N ? '<span aria-label="Too few trials to compare a percentage">—</span>' : fmtPct(r.share)}</td><td class="num">${esc(r.latest || '—')}</td>
-      <td><a href="#/trials?${buildQuery({ city: r.city, ...Object.fromEntries(listQuery ? listQuery.split('&').map((p) => p.split('=').map(decodeURIComponent)) : []) })}">All</a>${r.high ? ` · <a href="#/trials?${buildQuery({ city: r.city, tier: 'high' })}">High risk</a>` : ''}</td>
+      <td><a href="#/trials?${buildQuery({ ...listFilters, city: r.city })}">All (${fmtInt(r.total)})</a>${r.high ? ` · <a href="#/trials?${buildQuery({ ...listFilters, city: r.city, tier: 'high' })}">High risk (${fmtInt(r.high)})</a>` : ''}</td>
     </tr>`).join('')}</tbody></table></div>`;
 
   // Map.
@@ -272,7 +264,7 @@ export async function render(main, { query }) {
     const m = L.circleMarker([r.lat, r.lon], { radius: radiusOf(r.total), color: '#3b2a26', weight: 1, fillColor: fill, fillOpacity: small ? 0.7 : 0.85 });
     const text = `<strong>${esc(r.city)}</strong><br>${M.text(r)}${r.latest ? `<br>Newest start: ${esc(r.latest)}` : ''}`;
     m.bindTooltip(text, { direction: 'top', opacity: 0.95 });
-    m.bindPopup(`${text}<br><a href="#/trials?${buildQuery({ city: r.city, tier: r.high ? 'high' : '' })}">See ${r.high ? 'the high-risk' : 'all'} trials in ${esc(r.city)}</a>`);
+    m.bindPopup(`${text}<br><a href="#/trials?${buildQuery({ ...listFilters, city: r.city, tier: r.high ? 'high' : '' })}">See ${r.high ? `the ${fmtInt(r.high)} high-risk` : `all ${fmtInt(r.total)}`} trials in ${esc(r.city)}</a>`);
     m.addTo(layer);
   }
 }

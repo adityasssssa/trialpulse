@@ -1,5 +1,5 @@
-import { loadSummary, loadMetrics, loadFeatureImportance } from '../data.js?v=20261025004428';
-import { esc, fmtInt, fmtPct, fmtTimes, fmtNum, sourceLine } from '../util.js?v=20261025004428';
+import { loadSummary, loadMetrics, loadFeatureImportance } from '../data.js?v=20261025010135';
+import { esc, fmtInt, fmtPct, fmtTimes, fmtNum, sourceLine, wilson } from '../util.js?v=20261025010135';
 
 const SLICE_LABELS = { all: 'Full test set', us: 'Trials with a US site', ma: 'Trials with a Massachusetts site' };
 const MODEL_LABELS = { lightgbm: 'LightGBM (default)', logreg: 'Logistic regression (baseline)' };
@@ -18,7 +18,7 @@ const LIMITS = [
   ['The rare-disease feature is a keyword match.', 'It matches condition names containing "rare" or "orphan". "Syndrome" was removed because it flagged common conditions such as carpal tunnel syndrome. It is not a clinical rare-disease designation, so no trial is labeled "rare disease" because of it.'],
   ['Survivorship.', 'Trials that were never registered are invisible to the data.'],
   ['What the data cannot see.', 'Recruitment through networks not listed as sites, stop reasons that were never entered, protocol quality and investigators\' track records.'],
-  ['Scores are probabilities, not verdicts.', 'Even among the riskiest 10%, most trials are expected to finish normally.'],
+  ['Scores are probabilities, not verdicts.', 'Even among the riskiest 10% of past trials, most were not stopped for low enrollment.'],
   ['Some trials have no condition category.', 'About 15–20% of trials have no MeSH condition terms, so the condition category can be empty and the category filter cannot find them.'],
 ];
 
@@ -39,7 +39,7 @@ function metricsTable(rows, { lead } = {}) {
   return `<div class="table-wrap"><table class="data">
     <thead><tr>
       <th scope="col">Training population</th><th scope="col">Labels</th><th scope="col">Evaluated on</th><th scope="col">Model</th>
-      <th scope="col" class="num">Test trials</th><th scope="col" class="num">Base rate</th><th scope="col" class="num">AUC-ROC</th><th scope="col" class="num">AUC-PR</th><th scope="col" class="num">Precision, top 10%</th><th scope="col" class="num">Brier</th>
+      <th scope="col" class="num">Test trials</th><th scope="col" class="num">Base rate</th><th scope="col" class="num">ROC-AUC</th><th scope="col" class="num">PR-AUC</th><th scope="col" class="num">Precision, top 10% (95% CI)</th><th scope="col" class="num">Brier</th>
     </tr></thead>
     <tbody>${rows.map((r) => `<tr class="${lead && lead(r) ? 'lead' : ''}">
       <td>${esc(POP_LABELS[r.population] || r.population)}</td>
@@ -50,7 +50,7 @@ function metricsTable(rows, { lead } = {}) {
       <td class="num">${fmtPct(r.base_rate)}</td>
       <td class="num">${fmtNum(r.auc_roc)}</td>
       <td class="num">${fmtNum(r.auc_pr)} (${fmtTimes(r.auc_pr_vs_base)})</td>
-      <td class="num">${fmtPct(r.precision_top10pct)} (${fmtTimes(r.precision_top10pct_vs_base)})</td>
+      <td class="num">${fmtPct(r.precision_top10pct)} (${fmtTimes(r.precision_top10pct_vs_base)})${(() => { const ci = wilson(r.precision_top10pct, Math.round(r.n_test * 0.1)); return ci ? `<br><span class="ci">${fmtPct(ci[0])}–${fmtPct(ci[1])}, n=${fmtInt(Math.round(r.n_test * 0.1))}</span>` : ''; })()}</td>
       <td class="num">${fmtNum(r.brier)}</td>
     </tr>`).join('')}</tbody>
   </table></div>`;
@@ -104,7 +104,8 @@ export async function render(main) {
             <li>We studied ${fmtInt(headline[0]?.n_train)} past trials and learned which design features went together with stopping early for low enrollment.</li>
             <li>We checked the model on ${fmtInt(headline[0]?.n_test)} later trials it had never seen. Among the 10% it rated riskiest, ${fmtPct(headline[0]?.precision_top10pct, 0)} did stop early for that reason, compared with ${fmtPct(headline[0]?.base_rate, 1)} of all trials.</li>
             <li>Then we applied it to the ${fmtInt(summary.n_trials_scored)} trials recruiting in Massachusetts today, using only facts known when a trial is designed.</li>
-            <li>It is a ranking tool, not a crystal ball. Most trials in every tier are expected to finish normally.</li>
+            <li>It is a ranking tool, not a crystal ball. Even in the high-risk tier, most past trials were not stopped for low enrollment.</li>
+            <li>One unresolved caveat: inputs such as site counts and eligibility text come from each trial's current registry record, not from a snapshot taken before the outcome was known. See “Feature timing” below.</li>
           </ul>
           ${sourceLine(summary)}
         </div>
@@ -134,19 +135,41 @@ export async function render(main) {
         <p><strong>Labels.</strong> Labels come from the registry's free-text "why stopped" field. A keyword rule marks reasons involving accrual, enrollment or recruitment as positive, and completed trials as negative ("strict" labels). "Loose" labels also count trials stopped for other clear reasons as negative. Trials with mixed reasons are left out of training.</p>
         <p><strong>Features.</strong> Only design-time features are used: phase, sponsor type, number of sites, eligibility rules, age range and similar facts. Nothing that becomes known only after a trial runs is used, so the model can be applied to trials that are recruiting today.</p>
         <p><strong>Training and testing.</strong> The trials were split by start year, never at random. The model learned from ${fmtInt(headline[0]?.n_train)} trials that started ${metrics.train_years?.[0]}–${metrics.train_years?.[1]} and was tested on ${fmtInt(headline[0]?.n_test)} trials that started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}, so the test imitates predicting the future.</p>
-        <p><strong>Models.</strong> A LightGBM gradient-boosted classifier is the default and produces every score on this site. A logistic regression model is kept as a baseline. Per-trial explanations use SHAP values.</p>
+        <p><strong>Models.</strong> A LightGBM gradient-boosted classifier is the default and produces every score on this site. A logistic regression model is kept as a baseline. Per-trial explanations use SHAP values, which describe associations the model learned, not causes.</p>
+        <div class="callout-warn">
+          <p><strong>Feature timing is not fully resolved.</strong> The pipeline reads each trial's current registry record through the ClinicalTrials.gov API. Fields such as the number of sites and the eligibility text can be edited during a trial, so for past trials some inputs may reflect a later version than the one that existed before the outcome was known. The time split (train on 2008–2018 starts, test on 2019–2021) does not remove this. Registry version history was not used, so this leakage question is open, and claims of prospective prediction should be read with that in mind.</p>
+        </div>
+        <h3>Cohort, labels and splits</h3>
+        <ul class="checks">
+          <li><strong>Included.</strong> Interventional trials that started 2008–2021 and were first registered within 30 days of their start date. Observational studies and trials registered later are excluded (38% of interventional trials in that window).</li>
+          <li><strong>Positive label (strict).</strong> A trial with status terminated or withdrawn whose free-text “why stopped” matches accrual, enrollment or recruitment keywords.</li>
+          <li><strong>Negative label (strict).</strong> A completed trial. Trials stopped for other reasons (safety, funding, sponsor decision), with mixed reasons, or with no reason given are left out of the strict training set. The “loose” scheme adds trials stopped for other clear reasons as negatives.</li>
+          <li><strong>Consequence.</strong> A score is the estimated probability of “stopped for low enrollment” rather than “completed”, among trials that end one of those two ways. Trials that stop for other reasons are not in that denominator, so the percentages are not the share of all trials that will stop.</li>
+          <li><strong>Split.</strong> By start year: 2008–2018 for training, 2019–2021 for testing. No separate validation set is documented in the exports; the comparison of the two models was made on the test set, so the reported choice carries some optimism.</li>
+          <li><strong>Missing data and preprocessing.</strong> Not described in the exports. The pipeline code in <code>src/trialpulse/features.py</code> is the reference.</li>
+        </ul>
+        <h3>Why LightGBM is the default</h3>
+        <p>On the full test set LightGBM reaches a ROC-AUC of ${fmtNum(headline[0]?.auc_roc, 3)} against ${fmtNum(baseline[0]?.auc_roc, 3)} for logistic regression, a difference of ${fmtNum((headline[0]?.auc_roc || 0) - (baseline[0]?.auc_roc || 0), 3)}, below the team's own 0.03 bar for a meaningful gain. At the top 10% review capacity the two are close (${fmtPct(headline[0]?.precision_top10pct)} versus ${fmtPct(baseline[0]?.precision_top10pct)} precision). LightGBM was kept for its small lead in ranking; either model would give a similar priority order, and the simpler model is reported alongside it everywhere.</p>
+        <h3>Calibration</h3>
+        <p>No calibration step was fitted. The calibration figure below compares predicted and observed rates on the Massachusetts test slice, which is also the slice used to report results, so it is a check rather than an independent validation. Calibration on today's recruiting trials cannot be measured until they finish, which is why the site presents tiers and ranks first and percentages second.</p>
+        <h3>Still to do</h3>
+        <ul class="checks">
+          <li>Compare against simple operational rules such as “review small academic studies first”. The exports do not include per-trial test predictions, so this comparison is pending in the pipeline.</li>
+          <li>Report precision and recall at several review capacities (for example the top 5%, 10% and 20%). Only the top 10% is exported today.</li>
+          <li>Evaluate more trial groups. Only one has been checked so far: mental-health trials (ROC-AUC about 0.63). Rare-disease trials cannot be evaluated with this data.</li>
+        </ul>
         ${sourceLine(summary)}
       </section>
 
       <section class="section" aria-labelledby="metrics-h">
         <h2 id="metrics-h">How well it works</h2>
         <div class="kv" style="margin-bottom:16px">
-          <div class="stat"><div class="value">${fmtNum(headline[0]?.auc_roc, 3)}</div><div class="label">AUC-ROC, full test set</div></div>
+          <div class="stat"><div class="value">${fmtNum(headline[0]?.auc_roc, 3)}</div><div class="label">ROC-AUC (ranking), full test set</div></div>
           <div class="stat"><div class="value">${fmtPct(headline[0]?.precision_top10pct)}</div><div class="label">of the riskiest 10% did stop early for low enrollment (${fmtTimes(headline[0]?.precision_top10pct_vs_base)} the base rate of ${fmtPct(headline[0]?.base_rate)})</div></div>
           <div class="stat"><div class="value">${fmtNum(headline[0]?.auc_pr, 3)}</div><div class="label">AUC-PR (${fmtTimes(headline[0]?.auc_pr_vs_base)} the base rate)</div></div>
-          <div class="stat"><div class="value">${fmtNum(headline.find((r) => r.slice === 'ma')?.auc_roc, 3)}</div><div class="label">AUC-ROC on the Massachusetts slice (${fmtInt(headline.find((r) => r.slice === 'ma')?.n_test)} test trials)</div></div>
+          <div class="stat"><div class="value">${fmtNum(headline.find((r) => r.slice === 'ma')?.auc_roc, 3)}</div><div class="label">ROC-AUC on the Massachusetts slice (${fmtInt(headline.find((r) => r.slice === 'ma')?.n_test)} test trials, under 100 positives)</div></div>
         </div>
-        <p class="metrics-note">The default model is trained on all countries with strict labels and uses LightGBM. The highlighted row is the headline result. "Precision, top 10%" is the share of the 10% highest-risk test trials that did stop early for low enrollment. Multiples in brackets are relative to the base rate. The Massachusetts slice is small (about 1,700 test trials and under 100 positives), so its numbers are less precise.</p>
+        <p class="metrics-note">The default model is trained on all countries with strict labels and uses LightGBM. The highlighted row is the headline result. "Precision, top 10%" is the share of the 10% highest-risk test trials that did stop early for low enrollment. Multiples in brackets are relative to the base rate. The Massachusetts slice is small (about 1,700 test trials and under 100 positives), so its numbers are less precise. The 95% intervals are Wilson intervals computed from the reported rate and the number of trials in the top 10%; ROC-AUC intervals would need per-trial predictions, which the exports do not include.</p>
         <div class="card" style="padding:0;overflow:hidden">
           ${metricsTable([...headline, ...baseline], { lead: (r) => r.model === d.model && r.slice === 'all' })}
         </div>
@@ -156,6 +179,21 @@ export async function render(main) {
           <p class="metrics-note" style="margin-top:8px">${esc(metrics.field_notes?.population || '')} ${esc(metrics.field_notes?.scheme || '')} ${esc(metrics.field_notes?.slice || '')}</p>
         </details>
         ${sourceLine(summary, `Test trials started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}.`)}
+      </section>
+
+      <section class="section" aria-labelledby="shift-h">
+        <h2 id="shift-h">How today's trials differ from the test set</h2>
+        <p class="prose">The model is applied to recruiting Massachusetts trials that look different from the trials it was tested on. The ranking still applies, but exact percentages extrapolate.</p>
+        <div class="card" style="padding:0;overflow:hidden"><div class="table-wrap"><table class="data shift-table">
+          <caption class="visually-hidden">Recruiting Massachusetts trials compared with the 2019–2021 test set</caption>
+          <thead><tr><th scope="col">Feature</th><th scope="col" class="num">Recruiting MA trials (scored)</th><th scope="col" class="num">Test set (2019–2021)</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Median number of sites</th><td class="num">10</td><td class="num">1</td></tr>
+            <tr><th scope="row">Eligibility text length</th><td class="num">about 2×</td><td class="num">1×</td></tr>
+            <tr><th scope="row">Industry sponsor</th><td class="num">46%</td><td class="num">28%</td></tr>
+            <tr><th scope="row">Accepts healthy volunteers</th><td class="num">10%</td><td class="num">32%</td></tr>
+          </tbody></table></div></div>
+        <p class="source">Source: ClinicalTrials.gov API v2, data pulled ${esc(summary.data_pulled)}. Figures from the project README; site counts for recruiting trials can still grow.</p>
       </section>
 
       <section class="section" aria-labelledby="hc-h">
@@ -177,7 +215,7 @@ export async function render(main) {
         <p class="prose">Global feature importance for the default model, measured as the mean absolute SHAP value on the 2019–2021 test set, in log-odds of the predicted risk. A higher value means the feature moves scores more, in either direction.</p>
         <div class="card">
           ${importanceChart(fi)}
-          <p class="small muted" style="margin:10px 0 0">* Site-country features, such as "Main site in the US" and "Site country: Egypt", mostly reflect how consistently trials in that country report why they stopped, not trial design. The model uses them, but they are never shown as a reason on a trial page.</p>
+          <p class="small muted" style="margin:10px 0 0">* Site-country features, such as "Main site in the US" and "Site country: Egypt", mostly reflect how consistently trials in that country report why they stopped, not trial design. They are never shown as a per-trial reason, but hiding them does not remove their effect: every score still includes their contribution. A model trained without country inputs has not been evaluated; that is pending.</p>
           ${sourceLine(summary, `Model: ${esc(fi.model)}.`)}
         </div>
       </section>
@@ -195,13 +233,13 @@ export async function render(main) {
       <section class="section" aria-labelledby="terms-h">
         <h2 id="terms-h">Words used on this page</h2>
         <dl class="facts terms">
-          <dt>AUC-ROC</dt><dd>How well the model separates trials that stopped early from those that did not. A score of 0.5 is a coin flip; 1.0 is perfect.</dd>
+          <dt>ROC-AUC</dt><dd>The chance that the model ranks a randomly chosen trial that stopped for low enrollment above a randomly chosen one that did not. 0.5 is random; 1.0 is perfect ranking. It measures ordering, not whether the percentages are right.</dd>
           <dt>Base rate</dt><dd>The share of all test trials that stopped early for low enrollment, before any model.</dd>
           <dt>Precision, top 10%</dt><dd>Of the trials the model rated riskiest, the share that really did stop early for low enrollment.</dd>
-          <dt>AUC-PR</dt><dd>A score that rewards finding the rare early-stopping trials without many false alarms. Compare it with the base rate.</dd>
+          <dt>PR-AUC</dt><dd>A score that rewards finding the rare early-stopping trials without many false alarms. Compare it with the base rate.</dd>
           <dt>Brier score</dt><dd>How far the estimated percentages are from what happened. Lower is better.</dd>
           <dt>LightGBM</dt><dd>The type of model used: many small decision trees combined. Logistic regression is the simpler model it was compared with.</dd>
-          <dt>SHAP</dt><dd>A way to measure how much each feature pushed a score up or down.</dd>
+          <dt>SHAP</dt><dd>A way to measure how much each input pushed a score up or down. It describes what the model learned, not a cause.</dd>
           <dt>Time split</dt><dd>Training on older trials and testing on newer ones, so the test imitates predicting the future.</dd>
         </dl>
       </section>

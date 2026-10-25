@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrialPulse checks</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; max-width: 900px; line-height: 1.5; }
+    li { margin: 4px 0; } .pass { color: #1f6b45; } .fail { color: #a8231a; font-weight: 600; }
+    code { background: #eee; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>TrialPulse regression checks</h1>
+  <p>Runs in the browser against the built data. Open this page from the served site (<code>./dev.sh</code> then <code>/tests/</code>, or <code>/tests/</code> on the deployed site).</p>
+  <p id="summary">Running…</p>
+  <ul id="results"></ul>
+  <script type="module" src="tests.js"></script>
+</body>
+</html>
