@@ -1,11 +1,11 @@
-import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261025002804';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025002804';
-import { phaseWithInfo } from '../info.js?v=20261025002804';
-import { fetchLiveStatus, statusLabel } from '../registry.js?v=20261025002804';
+import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261025004428';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025004428';
+import { phaseWithInfo } from '../info.js?v=20261025004428';
+import { fetchLiveStatus, statusLabel } from '../registry.js?v=20261025004428';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
-} from '../util.js?v=20261025002804';
+} from '../util.js?v=20261025004428';
 
 const extIcon = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -152,9 +152,9 @@ export async function render(main, { params }) {
               <span>In the top <strong>${Math.max(1, Math.ceil((t.risk_rank / summary.n_trials_scored) * 100))}%</strong> of ranked trials</span>
               <span><strong>${esc(TIER_LABELS[t.risk_tier] || t.risk_tier)}</strong></span>
             </p>
-            <p class="small muted" style="margin:10px 0 0">An estimate, not a certainty: most trials in every tier are expected to finish normally. It says nothing about whether the treatment works.</p>
+            <p class="small muted" style="margin:10px 0 0">This is an estimate, not a certainty: in every tier, most trials are expected to finish normally. It says nothing about whether the treatment works.</p>
             <h3 style="margin-top:20px">Why this score</h3>
-            <p class="small muted">The three things about this trial's design that moved its score most. They explain the model, not the trial.</p>
+            <p class="small muted">The three design features that moved this trial's score most. They describe the model's reasoning, not the trial's quality.</p>
             ${reasonsHtml(t.top_reasons)}
             ${sourceLine(summary)}
           </section>
@@ -183,7 +183,7 @@ export async function render(main, { params }) {
               <dt>Sex</dt><dd>${esc(sexLabel(t.sex))}</dd>
               <dt>Healthy volunteers</dt><dd>${esc(healthyLabel(t.healthy_volunteers))}</dd>
               <dt>Start date</dt><dd>${esc(fmtDate(t.start_date))}</dd>
-              <dt>Sites</dt><dd>${fmtInt(t.n_sites)} worldwide, ${fmtInt(t.n_ma_sites)} in Massachusetts</dd>
+              <dt>Sites</dt><dd>${fmtInt(t.n_sites)} ${t.n_sites === 1 ? 'site' : 'sites'} worldwide, ${fmtInt(t.n_ma_sites)} in Massachusetts</dd>
             </dl>
             ${sourceLine(summary)}
           </section>

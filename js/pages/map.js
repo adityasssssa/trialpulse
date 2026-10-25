@@ -1,7 +1,7 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261025002804';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025002804';
-import { softNavigate } from '../app.js?v=20261025002804';
-import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery } from '../util.js?v=20261025002804';
+import { loadIndex, loadSummary } from '../data.js?v=20261025004428';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025004428';
+import { softNavigate } from '../app.js?v=20261025004428';
+import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery } from '../util.js?v=20261025004428';
 
 // Massachusetts bounding box (south-west, north-east) with a little padding.
 const MA_BOUNDS = [[41.15, -73.65], [43.0, -69.8]];
@@ -143,7 +143,7 @@ export async function render(main, { query }) {
       <div id="map-page" class="map-page">
         <div class="page-head">
           <h1>Where the high-risk trials are</h1>
-          <p>One circle per Massachusetts city with a recruiting trial site. Darker means more of the selected trials, or a larger high-risk share. Hover or tap a circle for its numbers; click through to that city's ranked list.</p>
+          <p>Each circle is a Massachusetts city with at least one recruiting trial site. Circle size shows how many of the selected trials have a site there, and a darker color shows a larger high-risk share. Hover over or tap a circle for its numbers, and click through to that city's ranked list.</p>
         </div>
         <form class="filters map-filters" id="map-filters" aria-label="Filter the map">
           <div class="map-toggle-row"><button type="button" class="btn btn-secondary filters-toggle" id="map-toggle" aria-expanded="false" aria-controls="map-filters-grid">Filters</button></div>
@@ -154,8 +154,8 @@ export async function render(main, { query }) {
             <div class="field"><label for="m-phase">Phase</label><select id="m-phase" name="phase">${optionList(phaseList, f.phase || '', (k) => phaseLabel(k === 'UNSPECIFIED' ? [] : k.split('+')), 'All phases')}</select></div>
             <div class="field"><label for="m-category">Condition category</label><select id="m-category" name="category">${optionList(byCount(cats), f.category || '', (k) => k, 'All categories')}</select></div>
             <div class="field"><label for="m-sponsor">Sponsor type</label><select id="m-sponsor" name="sponsor">${optionList(byCount(sponsors), f.sponsor || '', (k) => (k === 'UNSPECIFIED' ? 'Not specified' : sponsorLabel(k)), 'All sponsor types')}</select></div>
-            <div class="field"><label for="m-from">Started from</label><select id="m-from" name="from"><option value="">Any year</option>${yearList.map((y) => `<option value="${y}" ${String(y) === f.from ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
-            <div class="field"><label for="m-to">Started up to</label><select id="m-to" name="to"><option value="">Any year</option>${yearList.map((y) => `<option value="${y}" ${String(y) === f.to ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+            <div class="field"><label for="m-from">Start year from</label><select id="m-from" name="from"><option value="">Any year</option>${yearList.map((y) => `<option value="${y}" ${String(y) === f.from ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+            <div class="field"><label for="m-to">Start year to</label><select id="m-to" name="to"><option value="">Any year</option>${yearList.map((y) => `<option value="${y}" ${String(y) === f.to ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
           </div>
           <div class="filters-bar">
             <p class="result-count" id="map-summary" aria-live="polite"></p>
@@ -163,7 +163,7 @@ export async function render(main, { query }) {
           </div>
         </form>
         <div class="card map-card">
-          <div class="map map-large" id="city-map" role="img" aria-label="Map of Massachusetts cities. Circle shading follows the selected measure; the table below lists the same numbers."></div>
+          <div class="map map-large" id="city-map" role="img" aria-label="Map of Massachusetts cities. Circle size shows matching trials and circle color follows the selected measure; the table below lists the same numbers."></div>
           <div id="map-legend"></div>
           <p class="small muted" id="map-note" style="margin:10px 0 0"></p>
           ${sourceLine(summary, 'High risk = top 10% by estimated risk.')}
@@ -215,10 +215,10 @@ export async function render(main, { query }) {
   const sizeLegend = `<div class="size-legend" aria-label="Circle size scale"><span class="legend-title">Circle size: matching trials</span>
     <svg viewBox="0 0 ${sizeSamples.length * 90} 72" width="${sizeSamples.length * 90}" height="72" aria-hidden="true">${sizeSamples.map((n, i) => `<circle cx="${45 + i * 90}" cy="34" r="${radiusOf(n).toFixed(1)}" fill="none" stroke="currentColor" stroke-width="1.5"></circle><text x="${45 + i * 90}" y="68" text-anchor="middle" font-size="11">${fmtInt(n)}</text>`).join('')}</svg></div>`;
   const stateShare = trials.length ? nHigh / trials.length : 0;
-  const colorTitle = metric === 'share' ? `Circle colour: share of the city's matching trials that are high risk (cities with at least ${MIN_N} matching trials)` : `Circle colour: ${M.label.toLowerCase()}`;
+  const colorTitle = metric === 'share' ? `Circle color: share of the city's matching trials that are high risk (cities with at least ${MIN_N} matching trials)` : `Circle color: ${M.label.toLowerCase()}`;
   main.querySelector('#map-legend').innerHTML = `
     <div class="legend-block"><span class="legend-title">${esc(colorTitle)}</span>
-      <ul class="map-legend" aria-label="Colour scale">${M.bins.map((b) => `<li><span class="swatch" style="background:${b.color}"></span>${esc(b.label)}</li>`).join('')}${metric === 'share' ? `<li><span class="swatch" style="background:${SMALL_COLOR}"></span>Fewer than ${MIN_N} trials: no percentage</li>` : ''}</ul>
+      <ul class="map-legend" aria-label="Color scale">${M.bins.map((b) => `<li><span class="swatch" style="background:${b.color}"></span>${esc(b.label)}</li>`).join('')}${metric === 'share' ? `<li><span class="swatch" style="background:${SMALL_COLOR}"></span>Fewer than ${MIN_N} trials: no percentage</li>` : ''}</ul>
       <p class="small legend-compare">For comparison, ${fmtPct(stateShare)} of the ${fmtInt(trials.length)} matching trials statewide are high risk${anyFilter ? '' : ' (10% by definition: the high tier is the top 10%)'}.</p>
     </div>
     ${sizeLegend}`;

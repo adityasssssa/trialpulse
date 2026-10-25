@@ -1,6 +1,6 @@
-import { loadSummary, loadIndex } from '../data.js?v=20261025002804';
-import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261025002804';
-import { phaseWithInfo } from '../info.js?v=20261025002804';
+import { loadSummary, loadIndex } from '../data.js?v=20261025004428';
+import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261025004428';
+import { phaseWithInfo } from '../info.js?v=20261025004428';
 
 const arrow = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -54,7 +54,7 @@ export async function render(main) {
           <h2 id="what-h">What it does</h2>
           <ul class="checks">
             <li>Estimates each trial's risk of stopping early because too few people join.</li>
-            <li>Sorts the trials into high, elevated and typical risk, so outreach can start where it matters most.</li>
+            <li>Sorts the trials into high, elevated and typical risk tiers, so outreach can start where it matters most.</li>
             <li>Shows the three reasons behind each score, in plain words.</li>
           </ul>
         </div>
@@ -63,7 +63,7 @@ export async function render(main) {
           <ul class="checks">
             <li class="no">It does not say whether a treatment works or whether a trial is good science.</li>
             <li class="no">It does not look at any person. Only the study team decides who is eligible.</li>
-            <li class="no">It is not a certainty. Even most high-risk trials are expected to finish normally.</li>
+            <li class="no">It is not a certainty. Even among high-risk trials, most are expected to finish normally.</li>
           </ul>
         </div>
       </div>
@@ -75,15 +75,15 @@ export async function render(main) {
       <div class="tier-legend">
         <div class="card">
           ${tierBadge('high')}
-          <p>The top 10% of trials (estimated risk of ${fmtPct(tiers.high?.min_risk, 0)} or more). Worth a look first.</p>
+          <p>The top 10% of trials, with an estimated risk of ${fmtPct(tiers.high?.min_risk, 0)} or more. Worth a look first.</p>
         </div>
         <div class="card">
           ${tierBadge('elevated')}
-          <p>The next 20% (${fmtPct(tiers.elevated?.min_risk, 0)} or more). Keep an eye on these.</p>
+          <p>The next 20%, with an estimated risk of ${fmtPct(tiers.elevated?.min_risk, 0)} or more. Keep an eye on these.</p>
         </div>
         <div class="card">
           ${tierBadge('typical')}
-          <p>The remaining 70%. No special action suggested by the model.</p>
+          <p>The remaining 70%. The model suggests no special action.</p>
         </div>
       </div>
       ${sourceLine(summary)}

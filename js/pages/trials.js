@@ -1,20 +1,20 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261025002804';
-import { softNavigate } from '../app.js?v=20261025002804';
+import { loadIndex, loadSummary } from '../data.js?v=20261025004428';
+import { softNavigate } from '../app.js?v=20261025004428';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, phaseKey, sponsorLabel,
   norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER,
-} from '../util.js?v=20261025002804';
-import { phaseWithInfo, infoButton } from '../info.js?v=20261025002804';
+} from '../util.js?v=20261025004428';
+import { phaseWithInfo, infoButton } from '../info.js?v=20261025004428';
 
 const PAGE = 50;
 let prepared = null; // index rows with precomputed search text
 
 const SORTS = {
   rank: { label: 'Highest risk first', fn: (a, b) => a.t.risk_rank - b.t.risk_rank },
-  start_desc: { label: 'Newest start date', fn: (a, b) => (b.t.start_date || '').localeCompare(a.t.start_date || '') || a.t.risk_rank - b.t.risk_rank },
-  start_asc: { label: 'Oldest start date', fn: (a, b) => (a.t.start_date || '').localeCompare(b.t.start_date || '') || a.t.risk_rank - b.t.risk_rank },
-  ma_sites: { label: 'Most Massachusetts sites', fn: (a, b) => b.t.n_ma_sites - a.t.n_ma_sites || a.t.risk_rank - b.t.risk_rank },
-  title: { label: 'Title A to Z', fn: (a, b) => a.t.title.localeCompare(b.t.title) },
+  start_desc: { label: 'Newest start date first', fn: (a, b) => (b.t.start_date || '').localeCompare(a.t.start_date || '') || a.t.risk_rank - b.t.risk_rank },
+  start_asc: { label: 'Oldest start date first', fn: (a, b) => (a.t.start_date || '').localeCompare(b.t.start_date || '') || a.t.risk_rank - b.t.risk_rank },
+  ma_sites: { label: 'Most Massachusetts sites first', fn: (a, b) => b.t.n_ma_sites - a.t.n_ma_sites || a.t.risk_rank - b.t.risk_rank },
+  title: { label: 'Title, A to Z', fn: (a, b) => a.t.title.localeCompare(b.t.title) },
 };
 
 function csvCell(v) {
@@ -150,7 +150,7 @@ export async function render(main, { query }) {
       <div id="trials-page">
         <div class="page-head">
           <h1>Ranked trials</h1>
-          <p>All ${fmtInt(index.length)} trials now recruiting in Massachusetts, riskiest first. Risk means the estimated chance a trial stops early because too few people join. It is an estimate, not a certainty.</p>
+          <p>All ${fmtInt(index.length)} trials now recruiting in Massachusetts, riskiest first. Risk is the estimated chance that a trial stops early because too few people join. It is an estimate, not a certainty.</p>
         </div>
         <form class="filters" id="filters" role="search" aria-label="Filter trials">
           <div class="search-row">
@@ -241,7 +241,7 @@ export async function render(main, { query }) {
   const count = main.querySelector('#result-count');
   count.textContent = (anyFilter
     ? `${fmtInt(matches.length)} of ${fmtInt(index.length)} trials match`
-    : `All ${fmtInt(index.length)} trials`) + (sortKey !== 'rank' ? ` · sorted by ${SORTS[sortKey].label.toLowerCase()}` : '');
+    : `All ${fmtInt(index.length)} trials`) + (sortKey !== 'rank' ? ` · ${SORTS[sortKey].label}` : '');
 
   const results = main.querySelector('#results');
   if (!matches.length) {
