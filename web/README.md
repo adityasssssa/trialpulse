@@ -85,6 +85,9 @@ builds, commits `dist/` to the `gh-pages` branch and pushes it. One-time setup i
 - Map limited to Massachusetts: one circle per city, shaded by high-risk count, high-risk share or all matching trials; filters for phase, condition category, sponsor and start-year range; a start-year chart; a sortable city table.
 - Trial pages show the frozen score and reasons, the Massachusetts sites on a map, the verbatim eligibility text, and a live "Registry status today" card fetched from the ClinicalTrials.gov API v2 at most once a day per trial (cached in the browser). The live check never changes a score.
 - Build-time cache busting (`?v=<build id>` on every module and stylesheet), Open Graph tags, a web manifest and `robots.txt`.
+- One shared city-normalization layer (`normalizeCity` in `src/js/util.js`) used by the list filters, the map, trial pages and the CSV, so counts agree everywhere; the registered spelling is preserved on trial pages and in the CSV's `ma_cities_as_registered` column.
+- Per-trial eligibility files written at build time (`dist/data/eligibility/<NCT>.json`), so a trial page never downloads the 12 MB export; the full file remains as a fallback.
+- Browser regression checks at `/tests/` (`src/tests/tests.js`): export integrity rules, the Worcester count defect, map-to-list link parity under combined filters, year filters, empty results, CSV completeness, URL round-trips and the eligibility files. Run them after any change to filters or data handling.
 
 ## Keeping the data fresh
 
@@ -98,8 +101,8 @@ Independently of the pipeline, every trial page checks the registry live once a 
 
 ## Data notes
 
-- The registry's city field has exact misspellings. The map groups them with the correct city for display only; `../exports/` is never edited: "Worester" and "Worchester" → Worcester (one site each), "Sommerville" → Somerville (one site). Other similar-looking pairs (East and South Weymouth, North and South Dartmouth, West Springfield, Newton Center, North Worcester) are distinct real places and are left alone. The ranked list's city filter still uses the registry spelling, so a link from the map's Worcester row omits the two misspelled sites.
-- Two of the three misspelled sites have no registry coordinates, so they appear in the map's table but not as circles.
+- The registry's city field has exact misspellings. The map groups them with the correct city for display only; `../exports/` is never edited: "Worester" and "Worchester" → Worcester (one site each), "Sommerville" → Somerville (one site). Other similar-looking pairs (East and South Weymouth, North and South Dartmouth, West Springfield, Newton Center, North Worcester) are distinct real places and are left alone. The list, map, trial pages and CSV all use the normalized name.
+- Normalization is applied in one place and used everywhere, so the Worcester row on the map (194 trials, 5 high risk) links to a list that returns exactly 194 and 5.
 
 ## Display rules the site follows
 

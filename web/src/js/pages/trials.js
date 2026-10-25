@@ -2,11 +2,12 @@ import { loadIndex, loadSummary } from '../data.js';
 import { softNavigate } from '../app.js';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, phaseKey, sponsorLabel,
-  norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER,
+  norm, parseQuery, buildQuery, siteSummary, TIER_LABELS, TIER_ORDER, normalizeCity, trialCities, startYear,
 } from '../util.js';
 import { phaseWithInfo, infoButton } from '../info.js';
 
 const PAGE = 50;
+const FILTER_KEYS = ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility', 'from', 'to'];
 let prepared = null; // index rows with precomputed search text
 
 const SORTS = {
@@ -17,56 +18,26 @@ const SORTS = {
   title: { label: 'Title, A to Z', fn: (a, b) => a.t.title.localeCompare(b.t.title) },
 };
 
-function csvCell(v) {
-  const s = v == null ? '' : String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-// CSV of the current selection, for use in a spreadsheet.
-function toCsv(rows) {
-  const head = ['nct_id', 'risk_rank', 'risk_tier', 'risk', 'risk_vs_typical', 'title', 'phases', 'sponsor_class', 'conditions', 'condition_categories', 'start_date', 'n_sites', 'n_ma_sites', 'ma_facilities', 'ma_cities', 'url'];
-  const lines = [head.join(',')];
-  for (const r of rows) {
-    const t = r.t;
-    lines.push([
-      t.nct_id, t.risk_rank, t.risk_tier, t.risk, t.risk_vs_typical, t.title, (t.phases || []).join('; '), t.sponsor_class,
-      (t.conditions || []).join('; '), (t.condition_categories || []).join('; '), t.start_date, t.n_sites, t.n_ma_sites,
-      (t.ma_sites || []).map((s) => s.facility || '').join('; '), [...new Set((t.ma_sites || []).map((s) => s.city || ''))].join('; '), t.url,
-    ].map(csvCell).join(','));
-  }
-  return lines.join('\n');
-}
-
-function downloadCsv(rows, summary) {
-  const blob = new Blob(['\ufeff' + toCsv(rows)], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `trialpulse-ma-trials-${summary?.data_pulled || 'export'}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-
 function prepare(rows) {
   return rows.map((t) => ({
     t,
     search: norm([t.title, t.nct_id, ...(t.conditions || [])].join(' | ')),
-    facilities: norm((t.ma_sites || []).map((s) => `${s.facility || ''} ${s.city || ''}`).join(' | ')),
-    cities: new Set((t.ma_sites || []).map((s) => s.city).filter(Boolean)),
+    facilities: norm((t.ma_sites || []).map((s) => `${s.facility || ''} ${normalizeCity(s.city) || ''} ${s.city || ''}`).join(' | ')),
+    cities: new Set(trialCities(t)),
     phase: phaseKey(t.phases),
+    year: startYear(t),
   }));
 }
 
 function options(rows) {
-  const cats = new Map();
-  const phases = new Map();
-  const sponsors = new Map();
-  const cities = new Map();
+  const cats = new Map(); const phases = new Map(); const sponsors = new Map(); const cities = new Map(); const years = new Set();
   for (const r of rows) {
     for (const c of r.t.condition_categories || []) cats.set(c, (cats.get(c) || 0) + 1);
     phases.set(r.phase, (phases.get(r.phase) || 0) + 1);
     const sp = r.t.sponsor_class || 'UNSPECIFIED';
     sponsors.set(sp, (sponsors.get(sp) || 0) + 1);
     for (const c of r.cities) cities.set(c, (cities.get(c) || 0) + 1);
+    if (r.year) years.add(r.year);
   }
   const byCount = (m) => [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   const phaseOrder = ['EARLY_PHASE1', 'PHASE1', 'PHASE1+PHASE2', 'PHASE2', 'PHASE2+PHASE3', 'PHASE3', 'PHASE4', 'NA', 'UNSPECIFIED'];
@@ -74,12 +45,15 @@ function options(rows) {
     const ia = phaseOrder.indexOf(a[0]); const ib = phaseOrder.indexOf(b[0]);
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
   });
-  return { cats: byCount(cats), phases: phaseList, sponsors: byCount(sponsors), cities: byCount(cities) };
+  return { cats: byCount(cats), phases: phaseList, sponsors: byCount(sponsors), cities: byCount(cities), years: [...years].sort() };
 }
 
-function applyFilters(rows, f) {
+// Shared with the map page so that counts and links always agree.
+export function applyFilters(rows, f) {
   const q = norm(f.q || '').trim();
   const fac = norm(f.facility || '').trim();
+  const from = f.from ? Number(f.from) : null;
+  const to = f.to ? Number(f.to) : null;
   return rows.filter((r) => {
     const t = r.t;
     if (f.tier && t.risk_tier !== f.tier) return false;
@@ -90,10 +64,47 @@ function applyFilters(rows, f) {
     if (f.phase && r.phase !== f.phase) return false;
     if (f.sponsor && (t.sponsor_class || 'UNSPECIFIED') !== f.sponsor) return false;
     if (f.city && !r.cities.has(f.city)) return false;
+    if (from != null && (r.year == null || r.year < from)) return false;
+    if (to != null && (r.year == null || r.year > to)) return false;
     if (fac && !r.facilities.includes(fac)) return false;
     if (q && !r.search.includes(q)) return false;
     return true;
   });
+}
+
+export function prepareIndex(index) {
+  if (!prepared) prepared = prepare(index);
+  return prepared;
+}
+
+function csvCell(v) {
+  const s = v == null ? '' : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+// CSV of the full current selection (every matching row, not only the rows shown).
+export function toCsv(rows) {
+  const head = ['nct_id', 'risk_rank', 'risk_tier', 'risk', 'risk_vs_typical', 'title', 'phases', 'sponsor_class', 'conditions', 'condition_categories', 'start_date', 'n_sites', 'n_ma_sites', 'ma_facilities', 'ma_cities', 'ma_cities_as_registered', 'url'];
+  const lines = [head.join(',')];
+  for (const r of rows) {
+    const t = r.t;
+    lines.push([
+      t.nct_id, t.risk_rank, t.risk_tier, t.risk, t.risk_vs_typical, t.title, (t.phases || []).join('; '), t.sponsor_class,
+      (t.conditions || []).join('; '), (t.condition_categories || []).join('; '), t.start_date, t.n_sites, t.n_ma_sites,
+      (t.ma_sites || []).map((s) => s.facility || '').join('; '), trialCities(t).join('; '),
+      [...new Set((t.ma_sites || []).map((s) => s.city || ''))].join('; '), t.url,
+    ].map(csvCell).join(','));
+  }
+  return lines.join('\n');
+}
+
+function downloadCsv(rows, summary) {
+  const blob = new Blob(['﻿' + toCsv(rows)], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `trialpulse-review-list-${summary?.data_pulled || 'export'}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function rowHtml(t, maxRisk) {
@@ -107,9 +118,9 @@ function rowHtml(t, maxRisk) {
       <div class="sub">${esc(t.nct_id)}${conds ? ' · ' + esc(conds) : ''}${(t.conditions || []).length > 3 ? ', …' : ''}</div>
     </td>
     <td data-label="Tier">${tierBadge(t.risk_tier)}</td>
-    <td class="risk-cell" data-label="Risk">
+    <td class="risk-cell" data-label="Relative risk">
       <span class="times">${fmtTimes(t.risk_vs_typical)} typical</span>
-      <span class="pct">${fmtPct(t.risk)} estimated risk</span>
+      <span class="pct">${fmtPct(t.risk)} estimated</span>
       <span class="risk-bar tier-${esc(t.risk_tier)}" aria-hidden="true"><span style="width:${width}%"></span></span>
     </td>
     <td data-label="Phase">${phaseWithInfo(t.phases)}</td>
@@ -128,10 +139,26 @@ function selectHtml(id, label, items, value, labelFn = (k) => k, allLabel = 'All
   </div>`;
 }
 
+// Human-readable description of each active filter, for the chips row.
+function chipLabel(key, value) {
+  switch (key) {
+    case 'q': return `Search: “${value}”`;
+    case 'tier': return TIER_LABELS[value] || value;
+    case 'category': return value === '__none__' ? 'No MeSH category' : value;
+    case 'phase': return phaseLabel(value === 'UNSPECIFIED' ? [] : value.split('+'));
+    case 'sponsor': return value === 'UNSPECIFIED' ? 'Sponsor not specified' : sponsorLabel(value);
+    case 'city': return `City: ${value}`;
+    case 'facility': return `Facility: ${value}`;
+    case 'from': return `Started ${value} or later`;
+    case 'to': return `Started ${value} or earlier`;
+    default: return `${key}: ${value}`;
+  }
+}
+
 export async function render(main, { query }) {
   document.title = 'Ranked trials · TrialPulse';
   const [index, summary] = await Promise.all([loadIndex(), loadSummary()]);
-  if (!prepared) prepared = prepare(index);
+  prepareIndex(index);
   const f = parseQuery(query);
   const opts = options(prepared);
   const maxRisk = index[0]?.risk || 1;
@@ -142,15 +169,15 @@ export async function render(main, { query }) {
   const sortKey = SORTS[f.sort] ? f.sort : 'rank';
   const matches = applyFilters(prepared, f).sort(SORTS[sortKey].fn);
   main._matches = matches;
-  const anyFilter = ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility'].some((k) => f[k]);
+  const active = FILTER_KEYS.filter((k) => f[k]);
+  const anyFilter = active.length > 0;
 
-  // Build the page skeleton once; re-render only the results on filter changes.
   if (!main.querySelector('#trials-page')) {
     main.innerHTML = `
       <div id="trials-page">
         <div class="page-head">
           <h1>Ranked trials</h1>
-          <p>All ${fmtInt(index.length)} trials now recruiting in Massachusetts, riskiest first. Risk is the estimated chance that a trial stops early because too few people join. It is an estimate, not a certainty.</p>
+          <p>All ${fmtInt(index.length)} trials now recruiting in Massachusetts, ranked by their estimated risk of stopping early because too few people join. The tier and the "× typical" figure show relative priority; the percentage is a model estimate, not a measured rate. ${infoButton('TIER', 'What the risk tiers and “× typical” mean')}</p>
         </div>
         <form class="filters" id="filters" role="search" aria-label="Filter trials">
           <div class="search-row">
@@ -167,31 +194,32 @@ export async function render(main, { query }) {
             ${selectHtml('sponsor', 'Sponsor type', opts.sponsors, f.sponsor || '', (k) => (k === 'UNSPECIFIED' ? 'Not specified' : sponsorLabel(k)), 'All sponsor types')}
             ${selectHtml('city', 'City', opts.cities, f.city || '', (k) => k, 'All cities')}
             <div class="field">
-              <label for="facility">Facility</label>
+              <div class="label-row"><label for="facility">Facility</label></div>
               <input type="text" id="facility" name="facility" list="facility-list" placeholder="e.g. Mass General" value="${esc(f.facility || '')}" autocomplete="off">
               <datalist id="facility-list"></datalist>
             </div>
+            <div class="field"><div class="label-row"><label for="from">Start year from</label></div><select id="from" name="from"><option value="">Any year</option>${opts.years.map((y) => `<option value="${y}" ${String(y) === f.from ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+            <div class="field"><div class="label-row"><label for="to">Start year to</label></div><select id="to" name="to"><option value="">Any year</option>${opts.years.map((y) => `<option value="${y}" ${String(y) === f.to ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
           </div>
+          <div class="chips" id="active-chips" aria-label="Active filters"></div>
           <div class="filters-bar">
             <p class="result-count" id="result-count" aria-live="polite"></p>
             <div class="bar-actions">
               <label class="sort-label" for="sort">Sort</label>
-              <select id="sort" name="sort">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}" ${k === (f.sort || 'rank') ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select>
-              <button type="button" class="btn btn-secondary btn-small" id="download-csv">Download CSV</button>
+              <select id="sort" name="sort">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}" ${k === sortKey ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select>
+              <button type="button" class="btn btn-secondary btn-small" id="download-csv" title="Every trial in the current selection, not only the rows shown">Download review list (CSV)</button>
               <button type="button" class="btn btn-secondary btn-small" id="copy-link">Copy link</button>
               <button type="button" class="link-btn" id="clear-filters">Clear filters</button>
             </div>
           </div>
         </form>
         <div id="results"></div>
-        ${sourceLine(summary, 'High risk = top 10% of the ranking, elevated = next 20%, typical = the rest. "× typical" compares a trial with the typical (median) trial.')}
+        ${sourceLine(summary, 'Scores were computed from this snapshot. High risk = top 10% of the ranking, elevated = next 20%, typical = the rest. "× typical" = estimated risk divided by the median estimated risk of all scored trials.')}
       </div>`;
 
-    // Facility suggestions (distinct facility names, most common first).
     const facCounts = new Map();
     for (const r of prepared) for (const s of r.t.ma_sites || []) if (s.facility) facCounts.set(s.facility, (facCounts.get(s.facility) || 0) + 1);
-    const dl = main.querySelector('#facility-list');
-    dl.innerHTML = [...facCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map(([k]) => `<option value="${esc(k)}"></option>`).join('');
+    main.querySelector('#facility-list').innerHTML = [...facCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map(([k]) => `<option value="${esc(k)}"></option>`).join('');
 
     const form = main.querySelector('#filters');
     const toggle = main.querySelector('#filters-toggle');
@@ -222,22 +250,33 @@ export async function render(main, { query }) {
     main.querySelector('#clear-filters').addEventListener('click', () => {
       form.reset();
       form.querySelectorAll('input').forEach((i) => { i.value = ''; });
-      form.querySelectorAll('select').forEach((s) => { s.value = ''; });
+      form.querySelectorAll('select').forEach((s) => { s.value = s.id === 'sort' ? 'rank' : ''; });
       softNavigate('#/trials');
     });
+    main.querySelector('#active-chips').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-remove]');
+      if (!btn) return;
+      const next = parseQuery((location.hash.split('?')[1] || ''));
+      delete next[btn.dataset.remove];
+      const el = form.elements[btn.dataset.remove];
+      if (el) el.value = btn.dataset.remove === 'sort' ? 'rank' : '';
+      softNavigate(`#/trials${buildQuery(next) ? '?' + buildQuery(next) : ''}`);
+    });
   } else {
-    // Keep form controls in sync when navigating via browser back/forward.
     const form = main.querySelector('#filters');
-    for (const k of ['q', 'tier', 'category', 'phase', 'sponsor', 'city', 'facility', 'sort']) {
+    for (const k of [...FILTER_KEYS, 'sort']) {
       const el = form.elements[k];
       if (el && document.activeElement !== el) el.value = f[k] || (k === 'sort' ? 'rank' : '');
     }
   }
 
-  const activeFilters = ['tier', 'category', 'phase', 'sponsor', 'city', 'facility'].filter((k) => f[k]).length;
+  const activeFilters = active.filter((k) => k !== 'q').length;
   const toggleBtn = main.querySelector('#filters-toggle');
   toggleBtn.textContent = activeFilters ? `Filters (${activeFilters})` : 'Filters';
   toggleBtn.setAttribute('aria-label', activeFilters ? `Show filters, ${activeFilters} active` : 'Show filters');
+
+  main.querySelector('#active-chips').innerHTML = active.map((k) => `<span class="chip">${esc(chipLabel(k, f[k]))} <button type="button" class="chip-x" data-remove="${k}" aria-label="Remove filter: ${esc(chipLabel(k, f[k]))}">×</button></span>`).join('');
+
   const count = main.querySelector('#result-count');
   count.textContent = (anyFilter
     ? `${fmtInt(matches.length)} of ${fmtInt(index.length)} trials match`
@@ -257,7 +296,7 @@ export async function render(main, { query }) {
         <table class="data trials-table">
           <caption class="visually-hidden">Recruiting Massachusetts trials ranked by estimated risk of enrollment-related early termination</caption>
           <thead><tr>
-            <th scope="col">Rank</th><th scope="col">Trial</th><th scope="col">Risk tier</th><th scope="col">Risk</th><th scope="col">Phase</th><th scope="col">Sponsor</th><th scope="col">Massachusetts site(s)</th>
+            <th scope="col">Rank</th><th scope="col">Trial</th><th scope="col">Risk tier</th><th scope="col">Relative risk</th><th scope="col">Phase</th><th scope="col">Sponsor</th><th scope="col">Massachusetts site(s)</th>
           </tr></thead>
           <tbody>${matches.slice(0, shown).map((r) => rowHtml(r.t, maxRisk)).join('')}</tbody>
         </table>

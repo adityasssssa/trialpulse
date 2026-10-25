@@ -35,7 +35,7 @@ export async function render(main) {
           <li><strong>Where it comes from.</strong> Public trial registrations on ClinicalTrials.gov, pulled on ${esc(s.data_pulled)}. No patient records are used anywhere.</li>
           <li><strong>What a score is.</strong> For each of the ${fmtInt(s.n_trials_scored)} trials now recruiting in Massachusetts, the score is an estimate of the chance that the trial stops early because too few people enroll. The typical trial sits at ${fmtPct(s.median_risk)}, and the ${fmtInt(s.n_high_risk)} trials in the top 10% are flagged high risk.</li>
           <li><strong>How we know it is useful.</strong> We trained the model on trials that started 2008–2018 and tested it on ${fmtInt(s.n_test)} trials that started ${s.test_years?.[0]}–${s.test_years?.[1]}. Among the 10% it rated riskiest, ${fmtPct(s.top_decile_precision, 0)} really did stop early for low enrollment, compared with ${fmtPct(s.base_rate)} of all trials.</li>
-          <li><strong>What a score is not.</strong> It is not a verdict on the treatment, the science or the research team, and it says nothing about whether any person can join. Most trials in every tier are expected to finish normally.</li>
+          <li><strong>What a score is not.</strong> It is not a verdict on the treatment, the science or the research team, and it says nothing about whether any person can join. On past trials, most of those in the high-risk tier were not stopped for low enrollment.</li>
           <li><strong>How to use it.</strong> Start outreach where the risk is highest. A high score is a reason to send more help, never a reason to cut a trial.</li>
         </ul>
         ${sourceLine(s)}

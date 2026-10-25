@@ -501,3 +501,30 @@ dl.small-facts { font-size: 0.92rem; }
 .size-legend { margin-top: 10px; color: var(--muted); }
 .size-legend svg { display: block; max-width: 100%; height: auto; }
 .size-legend text { fill: var(--text); font-family: var(--font-ui); }
+
+/* ---------- Active filter chips ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chips:empty { display: none; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent-strong); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 0.9rem; font-weight: 500; }
+.chip-x { border: none; background: transparent; color: inherit; font-size: 1.1rem; line-height: 1; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; padding: 0; }
+.chip-x:hover { background: var(--accent); color: var(--on-accent); }
+
+/* ---------- Coordinator journey ---------- */
+.journey { list-style: none; counter-reset: step; padding: 0; margin: 0; display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 860px) { .journey { grid-template-columns: repeat(5, 1fr); } }
+.journey li { counter-increment: step; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px 14px 48px; position: relative; display: flex; flex-direction: column; gap: 4px; }
+.journey li::before { content: counter(step); position: absolute; left: 14px; top: 14px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; }
+.journey li a { color: var(--text); text-decoration: none; }
+.journey li a:hover strong { text-decoration: underline; color: var(--accent-strong); }
+.journey li span { font-size: 0.9rem; color: var(--muted); }
+
+/* ---------- Trial next steps and live conflict ---------- */
+.next-card h3 { font-size: 1rem; margin: 12px 0 6px; }
+.conflict { background: var(--tier-elevated-bg); border: 1px solid var(--tier-elevated-border); color: var(--text); padding: 8px 10px; border-radius: var(--radius-sm); }
+.risk-card .big small { display: block; margin-left: 0; margin-top: 2px; }
+
+/* ---------- Metrics extras ---------- */
+.ci { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.shift-table th[scope="row"] { color: var(--text); text-transform: none; letter-spacing: 0; font-size: 0.95rem; position: static; }
+.callout-warn { border-left: 4px solid var(--tier-elevated); background: var(--tier-elevated-bg); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 0 0 1em; }
+.callout-warn p:last-child { margin-bottom: 0; }

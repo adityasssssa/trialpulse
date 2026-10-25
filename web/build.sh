@@ -50,6 +50,20 @@ with open(p, "w", encoding="utf-8") as fh:
 print("build id", v)
 PY
 
+# One small eligibility file per trial, so a trial page never needs the 12 MB export.
+python3 - "$OUT/data" <<'PY'
+import json, os, sys
+d = sys.argv[1]
+out = os.path.join(d, "eligibility")
+os.makedirs(out, exist_ok=True)
+with open(os.path.join(d, "ma_trials.json"), encoding="utf-8") as fh:
+    rows = json.load(fh)
+for r in rows:
+    with open(os.path.join(out, f"{r['nct_id']}.json"), "w", encoding="utf-8") as fh:
+        json.dump({"nct_id": r["nct_id"], "eligibility_criteria": r.get("eligibility_criteria")}, fh, ensure_ascii=False)
+print(f"eligibility files: {len(rows)}")
+PY
+
 # Quick sanity check that every JSON file parses.
 python3 - "$OUT/data" <<'PY'
 import json, os, sys

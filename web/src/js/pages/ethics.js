@@ -86,6 +86,7 @@ export async function render(main) {
               <li class="no">Whether a treatment works.</li>
               <li class="no">Whether a trial is good science or will reach its goals.</li>
               <li class="no">Whether anyone can join a trial.</li>
+              <li class="no">Which trials extra outreach would help most. The score flags trials for human review; the people who know the trial and the community decide.</li>
             </ul>
           </div>
         </div>
@@ -130,6 +131,28 @@ export async function render(main) {
           <li><strong>Demographics.</strong> Our data does not show who enrolls (race, ethnicity, or the age of actual participants), so we cannot tell whether a trial reaches diverse groups.</li>
           <li><strong>Socio-economic factors.</strong> Travel, cost, time off work, insurance and language barriers all affect enrollment, but none of these appear in our data.</li>
           <li><strong>Objectivity.</strong> We report weak results as well as strong ones, and treat scores as patterns, not proof.</li>
+        </ul>
+        <p class="muted small">Stakeholder validation with hospital recruitment staff is pending: no coordinator has used the tool yet, and no feedback from one is shown on this site.</p>
+      </section>
+
+      <section class="section prose" aria-labelledby="shap-h">
+        <h2 id="shap-h">What the per-trial reasons are, and are not</h2>
+        <ul class="checks">
+          <li>The three reasons on each trial page are SHAP values: the model inputs that moved that score most. They describe associations the model learned from past trials, not causes, and they do not identify a fix.</li>
+          <li>The site's country is used by the model but never shown as a reason, because it mostly reflects how consistently trials in each country report why they stopped. Hiding it from the explanation does not remove it from the score. A model without country inputs has not been evaluated; that is pending.</li>
+          <li>A high score is a prompt for a human to look, never an instruction to defund, close or deprioritize a trial, and never an input to any decision about who can join.</li>
+        </ul>
+      </section>
+
+      <section class="section prose" aria-labelledby="pilot-h">
+        <h2 id="pilot-h">Pilot evaluation plan (not yet run)</h2>
+        <p>Before any claim of impact, one recruitment office would use the ranked list for a fixed period under a written agreement. Everything below is a plan; none of it has happened.</p>
+        <ul class="checks">
+          <li><strong>Review time.</strong> Minutes a coordinator spends choosing which trials to work on each week, with and without the list.</li>
+          <li><strong>Usefulness of flagged trials.</strong> For each high-risk trial reviewed, the coordinator records whether the flag was useful, already known, or wrong, giving a precision figure from real use.</li>
+          <li><strong>Changes to priorities.</strong> How many outreach actions moved to trials the office had not been planning to work on.</li>
+          <li><strong>Harm check.</strong> Confirmation that no trial was deprioritized, defunded or closed because of a score.</li>
+          <li><strong>Enrollment follow-up.</strong> Six months later, whether flagged trials that received outreach were still recruiting or had met their accrual goals, compared with similar trials that did not.</li>
         </ul>
       </section>
 

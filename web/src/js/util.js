@@ -152,3 +152,27 @@ export function siteSummary(trial, max = 2) {
   const more = names.length - shown.length;
   return { shown, more, total: sites.length };
 }
+
+// ---- City normalization (one shared layer; exports/ are never edited) ----
+// Exact registry misspellings mapped to the correct Massachusetts city. The
+// original value stays available (see registeredCity) for traceability.
+export const CITY_FIXES = { Worester: 'Worcester', Worchester: 'Worcester', Sommerville: 'Somerville' };
+export const normalizeCity = (city) => (city == null ? null : (CITY_FIXES[city] || city));
+export const registeredCity = (city) => city;
+export const cityWasFixed = (city) => city != null && Object.prototype.hasOwnProperty.call(CITY_FIXES, city);
+
+// Distinct normalized cities for a trial.
+export function trialCities(trial) {
+  return [...new Set((trial.ma_sites || []).map((s) => normalizeCity(s.city)).filter(Boolean))];
+}
+
+export const startYear = (trial) => (trial.start_date ? Number(trial.start_date.slice(0, 4)) : null);
+
+// Wilson 95% interval for a proportion, as [low, high].
+export function wilson(p, n, z = 1.96) {
+  if (!n || p == null) return null;
+  const denom = 1 + (z * z) / n;
+  const centre = (p + (z * z) / (2 * n)) / denom;
+  const half = (z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n))) / denom;
+  return [Math.max(0, centre - half), Math.min(1, centre + half)];
+}

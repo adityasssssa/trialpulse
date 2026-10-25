@@ -2,7 +2,8 @@
 // The index (no eligibility text) powers lists; the full file loads only for a
 // trial detail view and is then cached for the session.
 
-const BASE = 'data/';
+// Resolved relative to this module, so pages and the tests page share one data path.
+const BASE = new URL('../data/', import.meta.url).href;
 const cache = new Map();
 
 async function fetchJson(file) {
@@ -42,4 +43,18 @@ export function isFullLoaded() {
 export async function findInIndex(nctId) {
   const rows = await loadIndex();
   return rows.find((r) => r.nct_id === nctId) || null;
+}
+
+// Eligibility text for one trial. Tries the small per-trial file written at
+// build time first; falls back to the full export (cached) if it is missing.
+export async function loadEligibility(nctId) {
+  try {
+    const r = await fetch(`${BASE}eligibility/${encodeURIComponent(nctId)}.json`);
+    if (r.ok) {
+      const j = await r.json();
+      return { text: j.eligibility_criteria ?? null, source: 'per-trial' };
+    }
+  } catch (e) { /* fall through */ }
+  const full = await loadFullTrial(nctId);
+  return { text: full ? full.eligibility_criteria : null, source: 'full-file' };
 }
