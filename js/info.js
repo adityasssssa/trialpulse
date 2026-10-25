@@ -1,6 +1,6 @@
 // Small "i" buttons that show a plain-language card on hover, focus or tap.
 // One floating card is shared by every button; content comes from PHASE_INFO.
-import { esc, phaseLabel, phaseKey } from './util.js?v=20261025010135';
+import { esc, phaseLabel, phaseKey } from './util.js?v=20261025142235';
 
 const NOTE = 'Participant ranges are typical examples for drug trials, not strict rules. Trials of devices, procedures and behavioral programs can work differently.';
 

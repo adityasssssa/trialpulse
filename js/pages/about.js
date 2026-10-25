@@ -1,5 +1,5 @@
-import { loadSummary, loadMetrics, loadFeatureImportance } from '../data.js?v=20261025010135';
-import { esc, fmtInt, fmtPct, fmtTimes, fmtNum, sourceLine, wilson } from '../util.js?v=20261025010135';
+import { loadSummary, loadMetrics, loadFeatureImportance } from '../data.js?v=20261025142235';
+import { esc, fmtInt, fmtPct, fmtTimes, fmtNum, sourceLine, wilson } from '../util.js?v=20261025142235';
 
 const SLICE_LABELS = { all: 'Full test set', us: 'Trials with a US site', ma: 'Trials with a Massachusetts site' };
 const MODEL_LABELS = { lightgbm: 'LightGBM (default)', logreg: 'Logistic regression (baseline)' };
@@ -136,8 +136,10 @@ export async function render(main) {
         <p><strong>Features.</strong> Only design-time features are used: phase, sponsor type, number of sites, eligibility rules, age range and similar facts. Nothing that becomes known only after a trial runs is used, so the model can be applied to trials that are recruiting today.</p>
         <p><strong>Training and testing.</strong> The trials were split by start year, never at random. The model learned from ${fmtInt(headline[0]?.n_train)} trials that started ${metrics.train_years?.[0]}–${metrics.train_years?.[1]} and was tested on ${fmtInt(headline[0]?.n_test)} trials that started ${metrics.test_years?.[0]}–${metrics.test_years?.[1]}, so the test imitates predicting the future.</p>
         <p><strong>Models.</strong> A LightGBM gradient-boosted classifier is the default and produces every score on this site. A logistic regression model is kept as a baseline. Per-trial explanations use SHAP values, which describe associations the model learned, not causes.</p>
-        <div class="callout-warn">
-          <p><strong>Feature timing is not fully resolved.</strong> The pipeline reads each trial's current registry record through the ClinicalTrials.gov API. Fields such as the number of sites and the eligibility text can be edited during a trial, so for past trials some inputs may reflect a later version than the one that existed before the outcome was known. The time split (train on 2008–2018 starts, test on 2019–2021) does not remove this. Registry version history was not used, so this leakage question is open, and claims of prospective prediction should be read with that in mind.</p>
+        <div class="notice notice-limit">
+          <p class="notice-title">Known gap: feature timing</p>
+          <p>The model's inputs come from each trial's registry record as it is today, not as it was when the trial started. Registry entries can be edited while a trial runs, so for past trials some inputs (for example the number of sites) may be newer than the outcome.</p>
+          <p>Splitting by start year does not fix this, and registry version history was not used. Treat the results as a strong retrospective test, not proof of prospective prediction.</p>
         </div>
         <h3>Cohort, labels and splits</h3>
         <ul class="checks">
