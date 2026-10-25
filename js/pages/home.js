@@ -1,14 +1,8 @@
-import { loadSummary, loadIndex } from '../data.js?v=20261024235854';
-import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261024235854';
-import { phaseWithInfo } from '../info.js?v=20261024235854';
+import { loadSummary, loadIndex } from '../data.js?v=20261025002804';
+import { esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, siteSummary } from '../util.js?v=20261025002804';
+import { phaseWithInfo } from '../info.js?v=20261025002804';
 
 const arrow = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-// "1 in 5" style wording for a share between 0 and 1.
-function oneIn(fraction) {
-  if (!fraction) return '—';
-  return `1 in ${Math.round(1 / fraction)}`;
-}
 
 export async function render(main) {
   document.title = 'TrialPulse · Which Massachusetts trials need recruitment help?';
@@ -32,20 +26,23 @@ export async function render(main) {
       <div class="stats">
         <div class="stat">
           <div class="value">${fmtInt(summary.n_trials_scored)}</div>
-          <div class="label">trials ranked, all recruiting now with a site in Massachusetts</div>
+          <div class="label">trials ranked</div>
+          <div class="detail">Every trial now recruiting with a site in Massachusetts.</div>
         </div>
         <div class="stat">
           <div class="value">${fmtInt(summary.n_high_risk)}</div>
-          <div class="label">flagged high risk, the top 10% of the ranking</div>
+          <div class="label">high-risk trials</div>
+          <div class="detail">The top 10% of the ranking.</div>
         </div>
         <div class="stat">
-          <div class="value">${oneIn(summary.top_decile_precision)}</div>
-          <div class="label">of the trials the model rated riskiest did stop early for low enrollment</div>
-          <div class="detail">compared with ${oneIn(summary.base_rate)} of all trials, on ${fmtInt(summary.n_test)} past trials the model had never seen</div>
+          <div class="value">${fmtPct(summary.top_decile_precision, 0)}</div>
+          <div class="label">of the highest-risk trials did stop early</div>
+          <div class="detail">Among the 10% of past trials the model rated riskiest, ${fmtPct(summary.top_decile_precision, 0)} later stopped for low enrollment. Across all ${fmtInt(summary.n_test)} test trials, only ${fmtPct(summary.base_rate)} did.</div>
         </div>
         <div class="stat">
           <div class="value">${Number(summary.auc_roc).toFixed(2)}</div>
-          <div class="label">accuracy score (AUC), where 0.5 is a coin flip and 1.0 is perfect</div>
+          <div class="label">accuracy score (AUC)</div>
+          <div class="detail">On a scale where 0.5 is a coin flip and 1.0 is perfect.</div>
         </div>
       </div>
       ${sourceLine(summary)}

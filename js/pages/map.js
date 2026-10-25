@@ -1,7 +1,7 @@
-import { loadIndex, loadSummary } from '../data.js?v=20261024235854';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024235854';
-import { softNavigate } from '../app.js?v=20261024235854';
-import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery } from '../util.js?v=20261024235854';
+import { loadIndex, loadSummary } from '../data.js?v=20261025002804';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025002804';
+import { softNavigate } from '../app.js?v=20261025002804';
+import { esc, fmtInt, fmtPct, sourceLine, phaseLabel, phaseKey, sponsorLabel, parseQuery, buildQuery } from '../util.js?v=20261025002804';
 
 // Massachusetts bounding box (south-west, north-east) with a little padding.
 const MA_BOUNDS = [[41.15, -73.65], [43.0, -69.8]];

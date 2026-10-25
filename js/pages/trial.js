@@ -1,11 +1,11 @@
-import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261024235854';
-import { loadLeaflet, addTiles } from '../leaflet.js?v=20261024235854';
-import { phaseWithInfo } from '../info.js?v=20261024235854';
-import { fetchLiveStatus, statusLabel } from '../registry.js?v=20261024235854';
+import { findInIndex, loadFullTrial, loadSummary, isFullLoaded } from '../data.js?v=20261025002804';
+import { loadLeaflet, addTiles } from '../leaflet.js?v=20261025002804';
+import { phaseWithInfo } from '../info.js?v=20261025002804';
+import { fetchLiveStatus, statusLabel } from '../registry.js?v=20261025002804';
 import {
   esc, fmtInt, fmtPct, fmtTimes, tierBadge, sourceLine, phaseLabel, sponsorLabel, sexLabel,
   ageRange, healthyLabel, fmtDate, TIER_LABELS, reasonLabel,
-} from '../util.js?v=20261024235854';
+} from '../util.js?v=20261025002804';
 
 const extIcon = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
