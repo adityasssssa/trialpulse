@@ -3,7 +3,7 @@ Original planning brief; superseded where it conflicts with README.md and HANDOF
 # Idea brief
 
 DS+X Healthcare Track: Winning Idea Brief
-Oct 24, 2026 · @vikram
+Oct 24, 2026 
 The recommendation
 Build "TrialPulse" (working name): a model that predicts which currently recruiting Massachusetts clinical trials will fail to enroll, plus a map of who those trials are failing to reach, plus a plain-language trial card for outreach. Challenge area H5 (Making Clinical Research More Accessible), with a direct hook into H3 (biomedical discovery) and the biotech sponsors in the room.
 Why this one, in judge terms:
